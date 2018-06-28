@@ -10,7 +10,7 @@ namespace CDHelper
     {
         static void Main(string[] args)
         {
-            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.1 by Asmodat ***");
+            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.2 by Asmodat ***");
 
             if (args.Length < 1)
             {
