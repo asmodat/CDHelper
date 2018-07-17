@@ -10,7 +10,7 @@ namespace CDHelper
     {
         static void Main(string[] args)
         {
-            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.3 by Asmodat ***");
+            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.4 by Asmodat ***");
 
             if (args.Length < 1)
             {
@@ -71,6 +71,9 @@ namespace CDHelper
                 case "hash":
                     executeHash(args);
                     break;
+                case "aes":
+                    executeAES(args);
+                    break;
                 case "help":
                 case "--help":
                 case "-help":
@@ -79,6 +82,7 @@ namespace CDHelper
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
                     ("curl", "Accepts params: GET"),
                     ("hash", "Accepts params: SHA256"),
+                    ("AES", "Accepts params: create-key, encrypt, decrypt"),
                     ("[flags]", "Allowed Syntax: key=value, --key=value, -key='v1 v2 v3', -k, --key"),
                     ("--execution-mode=silent-errors", "[All commands] Don't throw errors, only displays exception message."),
                     ("--execution-mode=debug", "[All commands] Throw instantly without reporting a failure."));

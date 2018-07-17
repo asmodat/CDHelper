@@ -20,6 +20,10 @@ namespace CDHelper
                         intensity: nArgs.FirstOrDefault(x => x.Key == "intensity").Value.ToIntOrDefault(1000)).Wait();
                     ; break;
                 case "help":
+                case "--help":
+                case "-help":
+                case "-h":
+                case "h":
                     HelpPrinter($"{args[0]}", "Curl Like Web Requests",
                     ("GET", "Accepts params: uri, timeout (optional [ms]), intensity (default 1000 [ms])"));
                     break;

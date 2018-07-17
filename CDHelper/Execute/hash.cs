@@ -104,6 +104,10 @@ namespace CDHelper
                     }
                     break;
                 case "help":
+                case "--help":
+                case "-help":
+                case "-h":
+                case "h":
                     HelpPrinter($"{args[0]}", "Hash Helper",
                     ("SHA256", "Accepts params: [as first param] [p]ath='<dir/file>', [v]erify='0x<hex string>', Accepted Flags: [r]ecursive, e[x]clude-root-name"),
                     ("MD5", "Accepts params: [as first param] [p]ath='<dir/file>', [v]erify='0x<hex string>', Accepted Flags: [r]ecursive, e[x]clude-root-name"));
