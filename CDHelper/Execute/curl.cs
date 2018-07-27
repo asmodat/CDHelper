@@ -17,7 +17,8 @@ namespace CDHelper
                     CurlHelper.AwaitSuccessCurlGET(
                         uri: nArgs.FirstOrDefault(x => x.Key == "uri").Value.CoalesceNullOrWhitespace(args[2]),
                         timeout: nArgs.FirstOrDefault(x => x.Key == "timeout").Value.ToIntOrDefault(0),
-                        intensity: nArgs.FirstOrDefault(x => x.Key == "intensity").Value.ToIntOrDefault(1000)).Wait();
+                        intensity: nArgs.FirstOrDefault(x => x.Key == "intensity").Value.ToIntOrDefault(1000),
+                        requestTimeout: nArgs.FirstOrDefault(x => x.Key == "request-timeout").Value.ToIntOrDefault(5*6*1000)).Wait();
                     ; break;
                 case "help":
                 case "--help":
@@ -25,7 +26,7 @@ namespace CDHelper
                 case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "Curl Like Web Requests",
-                    ("GET", "Accepts params: uri, timeout (optional [ms]), intensity (default 1000 [ms])"));
+                    ("GET", "Accepts params: uri, timeout (optional [ms]), intensity (default 1000 [ms]), request-timeout (optional [ms], 5 min default)"));
                     break;
                 default:
                     {

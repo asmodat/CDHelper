@@ -9,7 +9,7 @@ namespace CDHelper
 {
     public static class CurlHelper
     {
-        public static async Task AwaitSuccessCurlGET(string uri, int timeout, int intensity = 1000)
+        public static async Task AwaitSuccessCurlGET(string uri, int timeout, int intensity = 1000, int requestTimeout = 5 * 60 * 1000)
         {
             if (uri.IsNullOrEmpty())
                 throw new ArgumentException($"{nameof(uri)} can't be null or empty.");
@@ -21,11 +21,16 @@ namespace CDHelper
             {
                 try
                 {
-                    var result = (await HttpHelper.CURL(HttpMethod.Get, uri, null));
-                    lastResponse = result.Response;
+                    using (var client = new HttpClient())
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(Math.Min(requestTimeout, timeout));
 
-                    if (lastResponse.StatusCode == System.Net.HttpStatusCode.OK)
-                        return;
+                        var result = (await client.CURL(HttpMethod.Get, uri, null));
+                        lastResponse = result.Response;
+
+                        if (lastResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                            return;
+                    }
                 }
                 catch(Exception ex)
                 {

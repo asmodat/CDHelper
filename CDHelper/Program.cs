@@ -10,7 +10,7 @@ namespace CDHelper
     {
         static void Main(string[] args)
         {
-            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.4 by Asmodat ***");
+            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.5 by Asmodat ***");
 
             if (args.Length < 1)
             {
@@ -20,7 +20,7 @@ namespace CDHelper
 
             var nArgs = CLIHelper.GetNamedArguments(args);
 
-            if (args.Length > 1)
+            if (args.Length > 1 && !nArgs.GetValueOrDefault("hide_input", "false").JsonDeserialize<bool>())
                 Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{nArgs.JsonSerialize(Newtonsoft.Json.Formatting.Indented)}\n");
 
             string executionMode;
@@ -74,6 +74,9 @@ namespace CDHelper
                 case "aes":
                     executeAES(args);
                     break;
+                case "bitbucket":
+                    executeBitbucket(args);
+                    break;
                 case "help":
                 case "--help":
                 case "-help":
@@ -83,6 +86,7 @@ namespace CDHelper
                     ("curl", "Accepts params: GET"),
                     ("hash", "Accepts params: SHA256"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
+                    ("bitbucket", "Accepts params: pull-approve, pull-unapprove, pull-comment"),
                     ("[flags]", "Allowed Syntax: key=value, --key=value, -key='v1 v2 v3', -k, --key"),
                     ("--execution-mode=silent-errors", "[All commands] Don't throw errors, only displays exception message."),
                     ("--execution-mode=debug", "[All commands] Throw instantly without reporting a failure."));

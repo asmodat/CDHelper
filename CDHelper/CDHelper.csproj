@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Asmodat Bitbucket\Asmodat Bitbucket\Asmodat Bitbucket.csproj" />
     <ProjectReference Include="..\..\Asmodat Standard\Asmodat Standard\Asmodat Standard.csproj" />
   </ItemGroup>
 
