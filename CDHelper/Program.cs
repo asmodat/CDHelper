@@ -77,12 +77,16 @@ namespace CDHelper
                 case "bitbucket":
                     executeBitbucket(args);
                     break;
+                case "copy":
+                    executeCopy(args);
+                    break;
                 case "help":
                 case "--help":
                 case "-help":
                 case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
+                    ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET"),
                     ("hash", "Accepts params: SHA256"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),

@@ -1,11 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.IO;
-using System;
-using System.Linq;
-using AsmodatStandard.Extensions;
-using AsmodatStandard.Extensions.Collections;
-
-namespace CDHelper
+﻿namespace CDHelper
 {
     public class SecretConfig
     {

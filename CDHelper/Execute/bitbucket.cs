@@ -53,7 +53,10 @@ namespace CDHelper
                             Console.WriteLine($"Warning, could not pull-unapprove because no pull request was found for source: {source}, destination: {destination}, state: {state} in {username}/{slug} repository.");
 
                         if (bc.PullRequestUnApprove(pullRequest).Result)
+                        {
                             Console.WriteLine($"Success, Pull request {source} => {destination} in {username}/{slug} repository was unpproved.");
+                            return;
+                        }
 
                         Console.WriteLine($"Failure, Pull request {source} => {destination} in {username}/{slug} repository was NOT unapproved.");
                     }
@@ -76,7 +79,6 @@ namespace CDHelper
                             Console.WriteLine($"Warning, could not comment because no pull request was found for source: {source}, destination: {destination}, state: {state} in {username}/{slug} repository.");
 
                         bc.PullRequestComment(pullRequest, content).Await();
-
                         Console.WriteLine($"Success, Commented Pull request {source} => {destination} in {username}/{slug} repository with text: '{content}'.");
                     }
                     ; break;
