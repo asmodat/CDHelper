@@ -5,5 +5,6 @@
         public string Source;
         public string Destination;
         public bool Override;
+        public bool Recursive;
     }
 }

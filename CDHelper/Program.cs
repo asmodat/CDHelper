@@ -8,9 +8,11 @@ namespace CDHelper
 {
     public partial class Program
     {
+        public static string _version = "0.0.8";
+
         static void Main(string[] args)
         {
-            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v0.0.5 by Asmodat ***");
+            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
 
             if (args.Length < 1)
             {
@@ -63,7 +65,7 @@ namespace CDHelper
 
         private static void Execute(string[] args)
         {
-            switch (args[0]?.ToLower())
+            switch (args[0]?.ToLower().TrimStart("-"))
             {
                 case "curl":
                     executeCURL(args);
@@ -80,10 +82,12 @@ namespace CDHelper
                 case "copy":
                     executeCopy(args);
                     break;
+                case "version":
+                case "ver":
+                case "v":
+                    Console.WriteLine($"Version: v{_version}");
+                    break;
                 case "help":
-                case "--help":
-                case "-help":
-                case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
                     ("copy", "Accepts params: local"),

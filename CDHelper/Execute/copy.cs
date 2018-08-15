@@ -20,25 +20,74 @@ namespace CDHelper
                 case "local":
                     {
                         var config = nArgs["config"].ToFileInfo();
-                        var @override = nArgs["override"].ToBoolOrDefault(false);
+
+                        Console.WriteLine($"Local Copy Execution according to '{config.FullName}'.");
+
                         var configs = config.DeserialiseJson<CopyConfig[]>();
 
                         foreach (var cfg in configs)
                         {
-                            var src = cfg.Source.ToFileInfo();
-                            var dst = cfg.Destination.ToFileInfo();
+                            string src, dst;
 
-                            if (!src.Exists)
-                                throw new Exception($"Source file: '{src.FullName}' does not exit.");
-
-                            if (!dst.Directory.Exists)
+                            if (!RuntimeEx.IsWindows())
                             {
-                                Console.WriteLine($"Destination directory '{dst.Directory.FullName}' does not exist, creating...");
-                                dst.Directory.Create();
+                                Console.WriteLine($"Detected OS is NOT Windows, paths containing '\\' and ':' will be replaced with '/'");
+                                src = cfg.Source.ToLinuxPath();
+                                dst = cfg.Destination.ToLinuxPath();
+                            }
+                            else
+                            {
+                                src = cfg.Source;
+                                dst = cfg.Destination;
                             }
 
-                            Console.WriteLine($"Copying Files '{src.FullName}' => '{dst.FullName}' (Override: {cfg.Override}).");
-                            src.Copy(dst, cfg.Override);
+                            if (src.IsFile())
+                            {
+                                Console.WriteLine($"Detected, that Source is a FILE");
+
+                                var srcInfo = src.ToFileInfo();
+                                var dstInfo = dst.ToFileInfo();
+
+                                if (!srcInfo.Exists)
+                                    throw new Exception($"Source file: '{srcInfo.FullName}' does not exit.");
+
+                                if (!dstInfo.Directory.Exists)
+                                {
+                                    Console.WriteLine($"Destination directory '{dstInfo.Directory.FullName}' does not exist, creating...");
+                                    dstInfo.Directory.Create();
+                                }
+
+                                Console.WriteLine($"Copying Files '{srcInfo.FullName}' => '{dstInfo.FullName}' (Override: {cfg.Override}).");
+                                srcInfo.Copy(dstInfo, cfg.Override);
+                            }
+                            else if (src.IsDirectory())
+                            {
+                                Console.WriteLine($"Detected, that Source is a DIRECTORY");
+
+                                var srcInfo = src.ToDirectoryInfo();
+                                var dstInfo = dst.ToDirectoryInfo();
+
+                                if (!srcInfo.Exists)
+                                    throw new Exception($"Source directory: '{srcInfo.FullName}' does not exit.");
+
+                                if (!dstInfo.Exists)
+                                {
+                                    Console.WriteLine($"Destination directory '{dstInfo.FullName}' does not exist, creating...");
+                                    dstInfo.Create();
+                                }
+
+                                if (!dst.IsDirectory())
+                                    throw new Exception("If source is a directory then destination also must be a directory.");
+
+                                Console.WriteLine($"Recursive Copy: '{cfg.Recursive}'");
+                                foreach (string newPath in Directory.GetFiles(srcInfo.FullName, "*.*", cfg.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
+                                {
+                                    Console.WriteLine($"Copying Files '{srcInfo.FullName}' => '{dstInfo.FullName}' (Override: {cfg.Override}).");
+                                    File.Copy(newPath, newPath.Replace(srcInfo.FullName, dstInfo.FullName), cfg.Override);
+                                }
+                            }
+                            else
+                                throw new Exception($"Source '{src}' is neither a file or a directory.");
                         }
                     }
                     ; break;
