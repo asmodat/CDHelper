@@ -2,26 +2,14 @@
 
 echo "Publish START"
 
-app_name="CDHelper"
-pub_dir=./bin/publish
-current_dir=$PWD
+rm -rf "$PWD/bin/publish" -f -r -v
 
-rm -rf $pub_dir -f -r -v
+dotnet publish --self-contained -c Release -r linux-x64 -o ./bin/publish/linux-x64
+dotnet publish --self-contained -c Release -r win-x64 -o ./bin/publish/win-x64
+dotnet publish --self-contained -c Release -r osx-x64 -o ./bin/publish/osx-x64
 
-dotnet publish --self-contained -c release -r linux-x64 -o $pub_dir/linux-x64
-dotnet publish -c release -r win-x64 -o $pub_dir/win-x64
-dotnet publish -c release -r osx-x64 -o $pub_dir/osx-x64
-#wait $(jobs -p)
-
-cd $pub_dir/linux-x64/
-zip -r ../$app_name-linux-x64.zip *
-
-cd ../win-x64/
-zip -r ../$app_name-win-x64.zip *
-
-cd ../osx-x64/
-zip -r ../$app_name-osx-x64.zip *
-
-cd "$current_dir"
+zip -r -j ./bin/publish/CDHelper-linux-x64.zip ./bin/publish/linux-x64/*
+zip -r -j ./bin/publish/CDHelper-win-x64.zip ./bin/publish/win-x64/*
+zip -r -j ./bin/publish/CDHelper-osx-x64.zip ./bin/publish/osx-x64/*
 
 echo "Publish DONE"

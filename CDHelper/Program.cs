@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.0.8";
+        public static string _version = "0.0.9";
 
         static void Main(string[] args)
         {
@@ -67,6 +67,9 @@ namespace CDHelper
         {
             switch (args[0]?.ToLower().TrimStart("-"))
             {
+                case "ssh":
+                    executeSSH(args);
+                    break;
                 case "curl":
                     executeCURL(args);
                     break;
@@ -90,6 +93,7 @@ namespace CDHelper
                 case "help":
                 case "h":
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
+                    ("ssh", "Accepts params: command"),
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET"),
                     ("hash", "Accepts params: SHA256"),
