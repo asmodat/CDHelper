@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.0.9";
+        public static string _version = "0.1.2";
 
         static void Main(string[] args)
         {
@@ -85,6 +85,9 @@ namespace CDHelper
                 case "copy":
                     executeCopy(args);
                     break;
+                case "text":
+                    executeText(args);
+                    break;
                 case "version":
                 case "ver":
                 case "v":
@@ -97,6 +100,7 @@ namespace CDHelper
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET"),
                     ("hash", "Accepts params: SHA256"),
+                    ("text", "Accepts params: replace, dos2unix"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
                     ("bitbucket", "Accepts params: pull-approve, pull-unapprove, pull-comment"),
                     ("[flags]", "Allowed Syntax: key=value, --key=value, -key='v1 v2 v3', -k, --key"),
