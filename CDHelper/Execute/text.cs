@@ -1,9 +1,7 @@
 ﻿using System;
 using AsmodatStandard.Extensions;
 using AsmodatStandard.IO;
-using AsmodatStandard.Cryptography;
 using AsmodatStandard.Extensions.IO;
-using AsmodatStandard.Extensions.Threading;
 using AsmodatStandard.Extensions.Collections;
 using System.IO;
 
@@ -19,37 +17,43 @@ namespace CDHelper
             {
                 case "replace":
                     {
-                        var input = nArgs["input"].ToFileInfo();
-
-                        if (!input.Exists)
-                            throw new Exception($"Input file does not exists '{input.FullName}'");
-
-                        Console.WriteLine($"Reading '{input.FullName}' ...");
-                        var text = input.ReadAllText();
-
                         var @new = nArgs["new"];
                         var old = nArgs["old"];
+                        var files = FileHelper.GetFiles(nArgs["input"],
+                            pattern: nArgs.GetValueOrDefault("pattern") ?? "*",
+                            recursive: nArgs.GetValueOrDefault("recursive").ToBoolOrDefault(false));
 
-                        Console.WriteLine($"Replacing '{old}' with '{@new}' ...");
-                        text = text.Replace(old, @new);
+                        files.ParallelForEach(file =>
+                        {
+                            if (!file.Exists)
+                                throw new Exception($"Input file does not exists '{file.FullName}'");
 
-                        Console.WriteLine($"Saving '{input.FullName}' ...");
-                        input.WriteAllText(text);
-                        Console.WriteLine("SUCCESS");
+                            Console.WriteLine($"Replacing text '{old}' with '{@new}' in file '{file.FullName}' ...");
+                            var text = file.ReadAllText();
+                            text = text.Replace(old, @new);
+                            file.WriteAllText(text);
+                            Console.WriteLine($"Success, Replaced text in file '{file.FullName}' [{file?.Length ?? 0}]");
+
+                        });
+
+                        Console.WriteLine($"SUCCESS, Replaced text in {files?.Length ?? 0} files. ");
                     }
                     ; break;
                 case "dos2unix":
                     {
-                        var input = nArgs["input"].ToFileInfo();
+                        var files = FileHelper.GetFiles(nArgs["input"],
+                            pattern: nArgs.GetValueOrDefault("pattern") ?? "*",
+                            recursive: nArgs.GetValueOrDefault("recursive").ToBoolOrDefault(false));
 
-                        if (!input.Exists)
-                            throw new Exception($"Input file does not exists '{input.FullName}'");
+                        files.ParallelForEach(file =>
+                        {
+                            Console.WriteLine($"Converting '{file?.FullName}' [{file?.Length ?? 0}] from dos to unix format...");
+                            file.ConvertDosToUnix();
+                            file.Refresh();
+                            Console.WriteLine($"Success, Converted '{file?.FullName}' [{file?.Length ?? 0}]");
+                        });
 
-                        Console.WriteLine($"Converting '{input?.FullName}' [{input?.Length ?? 0}] from dos to unix format...");
-                        input.ConvertDosToUnix();
-
-                        input.Refresh();
-                        Console.WriteLine($"SUCCESS [{input?.Length ?? 0}]");
+                        Console.WriteLine($"SUCCESS, Converted {files?.Length ?? 0} files to unix format. ");
                     }
                     ; break;
                 case "help":

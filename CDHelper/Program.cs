@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.1.2";
+        public static string _version = "0.1.6";
 
         static void Main(string[] args)
         {
@@ -22,8 +22,17 @@ namespace CDHelper
 
             var nArgs = CLIHelper.GetNamedArguments(args);
 
-            if (args.Length > 1 && !nArgs.GetValueOrDefault("hide_input", "false").JsonDeserialize<bool>())
-                Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{nArgs.JsonSerialize(Newtonsoft.Json.Formatting.Indented)}\n");
+            if (args.Length > 1 && !nArgs.GetValueOrDefault("hide-input").ToBoolOrDefault(false))
+            {
+                var nArgsString = nArgs.JsonSerialize(Newtonsoft.Json.Formatting.Indented);
+                var hide_input_values = nArgs.GetValueOrDefault("hide-input-values", "[ ]").JsonDeserialize<string[]>();
+
+                foreach (var v in hide_input_values)
+                    if(!v.IsNullOrEmpty())
+                        nArgsString = nArgsString.Replace(v, "*".Repeat(v.Length));
+
+                Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{nArgsString}\n");
+            }
 
             string executionMode;
             if (nArgs.ContainsKey("execution-mode") &&

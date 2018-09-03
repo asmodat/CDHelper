@@ -9,6 +9,7 @@ using System.IO;
 using AsmodatStandard.Networking.SSH;
 using System.Collections.Generic;
 using System.Linq;
+using AWSWrapper.EC2;
 
 namespace CDHelper
 {
@@ -22,7 +23,19 @@ namespace CDHelper
             {
                 case "execute-shell":
                     {
-                        var host = nArgs["host"];
+                        string host;
+                        var ec2InstanceName = nArgs.GetValueOrDefault("ec2-instance-name");
+                        if(!ec2InstanceName.IsNullOrEmpty())
+                        {
+                            var ec2Helper = new AWSWrapper.EC2.EC2Helper();
+                            var instance = ec2Helper.ListInstancesByName(name: ec2InstanceName).Result
+                                .SingleOrDefault(x => (x.State.Name != Amazon.EC2.InstanceStateName.Terminated) && (x.State.Name != Amazon.EC2.InstanceStateName.ShuttingDown));
+
+                            host = instance.PublicIpAddress;
+                        }
+                        else
+                            host = nArgs["host"];
+
                         var user = nArgs["user"];
                         var key = nArgs["key"].ToFileInfo();
 
@@ -37,7 +50,7 @@ namespace CDHelper
 
                         var maxConnectionRetry = nArgs.GetValueOrDefault("max-reconnections").ToIntOrDefault(24);
                         var maxConnectionRetryDelay = nArgs.GetValueOrDefault("max-reconnection-delay").ToIntOrDefault(2500);
-                        Console.WriteLine($"Connecting... (Max Retries: {maxConnectionRetry}, Max Retry Delay: {maxConnectionRetryDelay})");
+                        Console.WriteLine($"Connecting to '{host}'... (Max Retries: {maxConnectionRetry}, Max Retry Delay: {maxConnectionRetryDelay})");
                         ssh.Connect(maxConnectionRetry: maxConnectionRetry,
                             maxConnectionRetryDelay: maxConnectionRetryDelay);
 

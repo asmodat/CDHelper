@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Asmodat.AWSWrapper" Version="1.0.0.25" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Asmodat Bitbucket\Asmodat Bitbucket\Asmodat Bitbucket.csproj" />
     <ProjectReference Include="..\..\Asmodat Standard\Asmodat Standard\Asmodat Standard.csproj" />
   </ItemGroup>
