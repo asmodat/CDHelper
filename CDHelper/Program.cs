@@ -8,7 +8,16 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.1.6";
+        public static string _version = "0.1.10";
+
+        private static string ModerateString(string s, string[] mod_array)
+        {
+            foreach (var v in mod_array)
+                if (!v.IsNullOrEmpty())
+                    s = s.Replace(v, "*".Repeat(v.Length));
+
+            return s;
+        }
 
         static void Main(string[] args)
         {
@@ -21,17 +30,12 @@ namespace CDHelper
             }
 
             var nArgs = CLIHelper.GetNamedArguments(args);
+            var hide_input_values = nArgs.GetValueOrDefault("hide-input-values", "[ ]").JsonDeserialize<string[]>();
 
             if (args.Length > 1 && !nArgs.GetValueOrDefault("hide-input").ToBoolOrDefault(false))
             {
                 var nArgsString = nArgs.JsonSerialize(Newtonsoft.Json.Formatting.Indented);
-                var hide_input_values = nArgs.GetValueOrDefault("hide-input-values", "[ ]").JsonDeserialize<string[]>();
-
-                foreach (var v in hide_input_values)
-                    if(!v.IsNullOrEmpty())
-                        nArgsString = nArgsString.Replace(v, "*".Repeat(v.Length));
-
-                Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{nArgsString}\n");
+                Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{ModerateString(nArgsString, hide_input_values)}\n");
             }
 
             string executionMode;
@@ -50,7 +54,8 @@ namespace CDHelper
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
+                        var errMessage = ModerateString(ex.JsonSerializeAsPrettyException(), hide_input_values);
+                        Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {errMessage}");
                     }
                 }
                 else
@@ -62,10 +67,11 @@ namespace CDHelper
                 {
                     Execute(args);
                 }
-                catch
+                catch(Exception ex)
                 {
-                    Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure");
-                    throw;
+                    var errMessage = ModerateString(ex.JsonSerializeAsPrettyException(), hide_input_values);
+                    Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {errMessage}");
+                    throw new Exception($"CDHelper v{_version} failed during execution of {args[0]} command.");
                 }
             }
 
