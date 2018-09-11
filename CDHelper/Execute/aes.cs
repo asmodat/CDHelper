@@ -6,6 +6,7 @@ using AsmodatStandard.Extensions.IO;
 using AsmodatStandard.Extensions.Threading;
 using AsmodatStandard.Extensions.Collections;
 using System.IO;
+using System.Collections.Generic;
 
 namespace CDHelper
 {
@@ -30,40 +31,63 @@ namespace CDHelper
                 case "encrypt":
                     {
                         var key = FileHelper.DeserialiseJson<AesSecret>(nArgs["key"]);
-                        var config = nArgs["config"].ToFileInfo();
-                        var configs = config.DeserialiseJson<SecretConfig[]>();
+                        var path = nArgs.GetValueOrDefault("path");
+                        var @override = nArgs.GetValueOrDefault("override").ToBoolOrDefault();
 
-                        foreach (var cfg in configs)
+                        void Encrypt(FileInfo src, FileInfo dst)
                         {
-                            var src = cfg.Source.ToFileInfo();
-                            var dst = cfg.Destination.ToFileInfo();
-
-                            if (File.Exists(dst.FullName))
-                                dst.Delete();
-
                             if (!dst.Directory.Exists)
                             {
                                 Console.WriteLine($"Creating directory '{dst.Directory.FullName}' for secret located at '{src.FullName}'.");
                                 dst.Directory.Create();
                             }
+                            else if (dst.Exists)
+                            {
+                                if (@override)
+                                    dst.Delete();
+                                else
+                                    throw new Exception($"Could NOT encrypt file '{src.FullName}', because destination '{dst.FullName}' already exists and override flag is not set.");
+                            }
 
                             Console.WriteLine($"Encrypting '{src.FullName}' => '{dst.FullName}'.");
                             src.EncryptAsync(key, dst).Await();
                         }
+
+                        if (path != null)
+                        {
+                            var src = path.ToFileInfo();
+                            var output = nArgs.GetValueOrDefault("output");
+                            var dst = (output.IsNullOrEmpty() ?
+                                (path + ".aes") :
+                                Path.Combine(output.ToDirectoryInfo().FullName, src.FullName + ".aes")).ToFileInfo();
+
+                            Encrypt(src, dst);
+                        }
+                        else
+                        {
+                            var config = nArgs["config"].ToFileInfo();
+                            var configs = config.DeserialiseJson<SecretConfig[]>();
+
+                            foreach (var cfg in configs)
+                            {
+                                var src = cfg.Source.ToFileInfo();
+                                var dst = cfg.Destination.ToFileInfo();
+                                Encrypt(src, dst);
+                            }
+                        }
+
+                        Console.WriteLine("SUCCESS");
                     }
                     ; break;
                 case "decrypt":
                     {
                         var key = FileHelper.DeserialiseJson<AesSecret>(nArgs["key"]);
-                        var dir = nArgs["dir"].ToDirectoryInfo();
+                        var path = nArgs["path"];
 
-                        if (!dir.Exists)
-                            throw new Exception($"Could not find directory '{dir.Extension}'.");
-
-                        var files = dir.GetFiles("*.aes", SearchOption.AllDirectories);
+                        var files = FileHelper.GetFiles(path, pattern: "*.aes", recursive: true);
 
                         if (files.IsNullOrEmpty())
-                            Console.WriteLine($"No '.aes' files were found in directory: '{dir.FullName}'");
+                            Console.WriteLine($"No '.aes' files were found for path: '{path}'");
 
                         foreach (var f in files)
                         {
@@ -86,8 +110,8 @@ namespace CDHelper
                 case "h":
                     HelpPrinter($"{args[0]}", "Curl Like Web Requests",
                     ("create-key", "Accepts params: path"),
-                    ("encrypt", "Accepts params: key, config"),
-                    ("decrypt", "Accepts params: key, dir"));
+                    ("encrypt", "Accepts params: key, config, path, override"),
+                    ("decrypt", "Accepts params: key, path"));
                     break;
                 default:
                     {

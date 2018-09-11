@@ -38,6 +38,7 @@ namespace CDHelper
 
                         var user = nArgs["user"];
                         var key = nArgs["key"].ToFileInfo();
+                        
 
                         var commands = nArgs.ContainsKey("cmd[]") ?
                             nArgs["cmd[]"].JsonDeserialize<string[]>() :
@@ -54,11 +55,12 @@ namespace CDHelper
                         ssh.Connect(maxConnectionRetry: maxConnectionRetry,
                             maxConnectionRetryDelay: maxConnectionRetryDelay);
 
-                        //Console.OutputEncoding = ssh.Encoding;
+                        var checkDelay = nArgs.GetValueOrDefault("check-delay").ToIntOrDefault(500);
                         Console.WriteLine($"Sucessfully connected, executing {commands.Length} command/s...");
                         var results = ssh.ExecuteShellCommands(commands,
                                 commandTimeout_ms: nArgs.GetValueOrDefault("command-timeout").ToIntOrDefault(60 * 1000),
-                                outputStream: Console.OpenStandardOutput());
+                                outputStream: Console.OpenStandardOutput(),
+                                checkDelay: checkDelay);
 
                         Console.WriteLine($"SUCCESS");
                     }

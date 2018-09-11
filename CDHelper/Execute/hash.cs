@@ -31,7 +31,7 @@ namespace CDHelper
                 else
                     verifiers.Add(verify);
 
-                if (verifiers.Any(x => hash.HexEquals(x)))
+                if (verifiers.Any(x => x != "*" && !x.IsNullOrEmpty() && hash.HexEquals(x)))
                     Console.WriteLine($"{hash_type} Hash Verification Succeeded");
                 else
                 {
