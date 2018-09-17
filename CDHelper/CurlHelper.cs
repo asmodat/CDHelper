@@ -3,18 +3,22 @@ using System.Threading.Tasks;
 using AsmodatStandard.Extensions;
 using AsmodatStandard.Extensions.Collections;
 using System.Net.Http;
-using AsmodatStandard.Types;
+using System.Diagnostics;
 
 namespace CDHelper
 {
     public static class CurlHelper
     {
-        public static async Task AwaitSuccessCurlGET(string uri, int timeout, int intensity = 1000, int requestTimeout = 5 * 60 * 1000)
+        public static async Task AwaitSuccessCurlGET(
+            string uri, 
+            int timeout, 
+            int intensity = 1000, 
+            int requestTimeout = 60 * 1000)
         {
             if (uri.IsNullOrEmpty())
                 throw new ArgumentException($"{nameof(uri)} can't be null or empty.");
 
-            var tt = new TickTimeout(timeout, TickTime.Unit.ms);
+            var sw = Stopwatch.StartNew();
             HttpResponseMessage lastResponse = null;
             Exception lastException = null;
             do
@@ -37,12 +41,14 @@ namespace CDHelper
                     lastException = ex;
                 }
 
-                if (!tt.IsTriggered)
+                if (sw.ElapsedMilliseconds < (timeout - intensity))
                     await Task.Delay(intensity);
+                else
+                    break;
 
-            } while (!tt.IsTriggered);
+            } while (true);
 
-            throw new Exception($"AwaitSuccessCurlGET, span: {(int)tt.Span}/{timeout} [ms], status code: '{lastResponse?.StatusCode}', response: '{lastResponse?.Content?.ReadAsStringAsync()}'", lastException);
+            throw new Exception($"AwaitSuccessCurlGET, span: {(int)sw.ElapsedMilliseconds}/{timeout} [ms], status code: '{lastResponse?.StatusCode}', response: '{lastResponse?.Content?.ReadAsStringAsync()}'", lastException);
         }
     }
 }
