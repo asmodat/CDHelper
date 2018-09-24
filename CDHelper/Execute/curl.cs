@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using AsmodatStandard.Extensions;
 using AsmodatStandard.IO;
@@ -14,11 +15,15 @@ namespace CDHelper
             switch (args[1]?.ToLower())
             {
                 case "get":
-                    CurlHelper.AwaitSuccessCurlGET(
-                        uri: nArgs.FirstOrDefault(x => x.Key == "uri").Value.CoalesceNullOrWhitespace(args[2]),
-                        timeout: nArgs.FirstOrDefault(x => x.Key == "timeout").Value.ToIntOrDefault(0),
-                        intensity: nArgs.FirstOrDefault(x => x.Key == "intensity").Value.ToIntOrDefault(1000),
-                        requestTimeout: nArgs.FirstOrDefault(x => x.Key == "request-timeout").Value.ToIntOrDefault(6*1000)).Wait();
+                    {
+                        var sw = Stopwatch.StartNew();
+                        CurlHelper.AwaitSuccessCurlGET(
+                            uri: nArgs.FirstOrDefault(x => x.Key == "uri").Value.CoalesceNullOrWhitespace(args[2]),
+                            timeout: nArgs.FirstOrDefault(x => x.Key == "timeout").Value.ToIntOrDefault(0),
+                            intensity: nArgs.FirstOrDefault(x => x.Key == "intensity").Value.ToIntOrDefault(1000),
+                            requestTimeout: nArgs.FirstOrDefault(x => x.Key == "request-timeout").Value.ToIntOrDefault(6 * 1000)).Wait();
+                        Console.WriteLine($"Curl GET commend executed sucessfully, elapsed {sw.ElapsedMilliseconds} [ms]");
+                    }
                     ; break;
                 case "help":
                 case "--help":

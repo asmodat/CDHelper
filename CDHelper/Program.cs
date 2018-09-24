@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.2.2";
+        public static string _version = "0.2.5";
 
         private static string ModerateString(string s, string[] mod_array)
         {
@@ -94,6 +94,9 @@ namespace CDHelper
                 case "aes":
                     executeAES(args);
                     break;
+                case "rsa":
+                    executeRSA(args);
+                    break;
                 case "bitbucket":
                     executeBitbucket(args);
                     break;
@@ -117,6 +120,7 @@ namespace CDHelper
                     ("hash", "Accepts params: SHA256"),
                     ("text", "Accepts params: replace, dos2unix"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
+                    ("RSA", "Accepts params: create-key, sign, verify"),
                     ("bitbucket", "Accepts params: pull-approve, pull-unapprove, pull-comment"),
                     ("[flags]", "Allowed Syntax: key=value, --key=value, -key='v1 v2 v3', -k, --key"),
                     ("--execution-mode=silent-errors", "[All commands] Don't throw errors, only displays exception message."),

@@ -87,7 +87,7 @@ namespace CDHelper
                 case "-help":
                 case "-h":
                 case "h":
-                    HelpPrinter($"{args[0]}", "Curl Like Web Requests",
+                    HelpPrinter($"{args[0]}", "Bitbucket API Control",
                     ("pull-approve", "Accepts params: key, secret, username, slug, source (default: develop), destination (default: master), state (default: OPEN)"),
                     ("pull-unapprove", "Accepts params: key, secret, username, slug, source (default: develop), destination (default: master), state (default: OPEN)"),
                     ("pull-comment", "Accepts params: key, secret, username, slug, source (default: develop), destination (default: master), state (default: OPEN), content"));

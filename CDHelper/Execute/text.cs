@@ -61,7 +61,7 @@ namespace CDHelper
                 case "-help":
                 case "-h":
                 case "h":
-                    HelpPrinter($"{args[0]}", "String",
+                    HelpPrinter($"{args[0]}", "String Manipulation",
                     ("replace", "Accepts params: old, new"),
                     ("dos2unix", "Accepts params: input"));
                     break;

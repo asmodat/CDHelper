@@ -108,7 +108,7 @@ namespace CDHelper
                 case "-help":
                 case "-h":
                 case "h":
-                    HelpPrinter($"{args[0]}", "Curl Like Web Requests",
+                    HelpPrinter($"{args[0]}", "AES Encryption",
                     ("create-key", "Accepts params: path"),
                     ("encrypt", "Accepts params: key, config, path, override"),
                     ("decrypt", "Accepts params: key, path"));
