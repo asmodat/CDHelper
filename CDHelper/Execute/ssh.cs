@@ -1,9 +1,7 @@
 ﻿using System;
 using AsmodatStandard.Extensions;
 using AsmodatStandard.IO;
-using AsmodatStandard.Cryptography;
 using AsmodatStandard.Extensions.IO;
-using AsmodatStandard.Extensions.Threading;
 using AsmodatStandard.Extensions.Collections;
 using System.IO;
 using AsmodatStandard.Networking.SSH;
@@ -27,7 +25,7 @@ namespace CDHelper
                         var ec2InstanceName = nArgs.GetValueOrDefault("ec2-instance-name");
                         if(!ec2InstanceName.IsNullOrEmpty())
                         {
-                            var ec2Helper = new AWSWrapper.EC2.EC2Helper();
+                            var ec2Helper = new EC2Helper();
                             var instance = ec2Helper.ListInstancesByName(name: ec2InstanceName).Result
                                 .SingleOrDefault(x => (x.State.Name != Amazon.EC2.InstanceStateName.Terminated) && (x.State.Name != Amazon.EC2.InstanceStateName.ShuttingDown));
 
