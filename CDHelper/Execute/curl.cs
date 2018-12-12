@@ -18,11 +18,18 @@ namespace CDHelper
                 case "get":
                     {
                         var uri = nArgs.FirstOrDefault(x => x.Key == "uri").Value.CoalesceNullOrWhitespace(args[2]);
-                        var timeout = nArgs.FirstOrDefault(x => x.Key == "timeout").Value.ToIntOrDefault(15 * 1000);
                         var intensity = nArgs.FirstOrDefault(x => x.Key == "intensity").Value.ToIntOrDefault(1000);
                         var requestTimeout = nArgs.FirstOrDefault(x => x.Key == "request-timeout").Value.ToIntOrDefault(5 * 1000);
+
+                        var timeout = Math.Max(
+                            requestTimeout,
+                            nArgs.FirstOrDefault(x => x.Key == "timeout").Value.ToIntOrDefault(15 * 1000));
+
                         var showResponse = nArgs.GetValueOrDefault("show-response", "false").ToBoolOrDefault();
                         var sw = Stopwatch.StartNew();
+
+                        Console.WriteLine($"Executing Curl GET command... timeout will occur if execution takes longer then {timeout} [ms]");
+
                         var response = CurlHelper.AwaitSuccessCurlGET(
                             uri: uri,
                             timeout: timeout,
