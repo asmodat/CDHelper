@@ -9,14 +9,20 @@ namespace CDHelper
 {
     public static class CurlHelper
     {
-        public static async Task AwaitSuccessCurlGET(
+        public static async Task<HttpResponseMessage> AwaitSuccessCurlGET(
             string uri, 
-            int timeout, 
+            int timeout = 60 * 1000, 
             int intensity = 1000, 
             int requestTimeout = 60 * 1000)
         {
             if (uri.IsNullOrEmpty())
                 throw new ArgumentException($"{nameof(uri)} can't be null or empty.");
+
+            if (timeout < requestTimeout)
+                throw new ArgumentException($"timeout {timeout} must be smaller then requestTimeout {requestTimeout}");
+
+            if (requestTimeout <= 0)
+                throw new ArgumentException($"requestTimeout must be greater then 0");
 
             var sw = Stopwatch.StartNew();
             HttpResponseMessage lastResponse = null;
@@ -33,7 +39,7 @@ namespace CDHelper
                         lastResponse = result.Response;
 
                         if (lastResponse.StatusCode == System.Net.HttpStatusCode.OK)
-                            return;
+                            return lastResponse;
                     }
                 }
                 catch(Exception ex)

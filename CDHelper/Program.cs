@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.2.7";
+        public static string _version = "0.2.8";
 
         private static string ModerateString(string s, string[] mod_array)
         {
