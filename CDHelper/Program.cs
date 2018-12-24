@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.2.9";
+        public static string _version = "0.2.10";
 
         private static string ModerateString(string s, string[] mod_array)
         {
@@ -106,6 +106,9 @@ namespace CDHelper
                 case "text":
                     executeText(args);
                     break;
+                case "docker":
+                    executeDocker(args);
+                    break;
                 case "version":
                 case "ver":
                 case "v":
@@ -117,6 +120,7 @@ namespace CDHelper
                     ("ssh", "Accepts params: command"),
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET"),
+                    ("docker", "Accepts params: gen"),
                     ("hash", "Accepts params: SHA256"),
                     ("text", "Accepts params: replace, dos2unix"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
