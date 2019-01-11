@@ -4,6 +4,9 @@
     {
         public long version = 1;
 
+        /// <summary>
+        /// port where application starts after the start command is run
+        /// </summary>
         public int port;
 
         /// <summary>
@@ -21,9 +24,19 @@
         /// </summary>
         public string baseImage;
 
+        /// <summary>
+        /// heroku buildpack used to build the source project
+        /// </summary>
         public string buildpackId;
 
+        /// <summary>
+        /// command used to replace default heroku build command 
+        /// </summary>
         public string customBuildCommand;
+
+        /// <summary>
+        /// command used to start the application (heroku local is default)
+        /// </summary>
         public string customStartCommand;
 
         /// <summary>

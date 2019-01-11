@@ -22,13 +22,22 @@ namespace CDHelper
             {
                 case "gen":
                     {
-                        var output = nArgs.GetValueOrDefault("output", "").TrimStart(".").Trim('/').Trim('\\').Trim(' ')
-                            .CoalesceNullOrEmpty(Environment.CurrentDirectory).ToDirectoryInfo();
+                        var tmpOutp = nArgs.GetValueOrDefault("output");
+                        if (tmpOutp.IsNullOrWhitespace() || tmpOutp == "./" || tmpOutp == "\\" || tmpOutp == "/")
+                        {
+                            tmpOutp = Environment.CurrentDirectory;
+                            Console.WriteLine($"Output is set to be the current console directory: {tmpOutp}");
+                        }
+
+                        var output = tmpOutp.ToDirectoryInfo();
+                        Console.WriteLine($"Directory output is set to: {output.FullName}");
 
                         var configInfo = nArgs["config"].ToFileInfo();
 
                         if (!configInfo.Exists)
                             throw new Exception($"Can't find config file: '{configInfo.FullName}'.");
+                        else
+                            Console.WriteLine($"Config file set to: {configInfo.FullName}");
 
                         var config = configInfo.ReadAllText().JsonDeserialize<DockergenConfig>();
                         config.workingDirectory = config.workingDirectory.CoalesceNullOrWhitespace($"/{Guid.NewGuid()}");

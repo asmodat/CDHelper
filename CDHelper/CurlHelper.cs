@@ -13,7 +13,8 @@ namespace CDHelper
             string uri, 
             int timeout = 60 * 1000, 
             int intensity = 1000, 
-            int requestTimeout = 60 * 1000)
+            int requestTimeout = 60 * 1000,
+            (string key, string value)[] headers = null)
         {
             if (uri.IsNullOrEmpty())
                 throw new ArgumentException($"{nameof(uri)} can't be null or empty.");
@@ -33,9 +34,13 @@ namespace CDHelper
                 {
                     using (var client = new HttpClient())
                     {
-                        client.Timeout = TimeSpan.FromSeconds(Math.Min(requestTimeout, timeout));
+                        client.Timeout = TimeSpan.FromMilliseconds(Math.Min(requestTimeout, timeout));
 
-                        var result = (await client.CURL(HttpMethod.Get, uri, null));
+                        var result = (await client.CURL(
+                            HttpMethod.Get, uri, 
+                            content: null, 
+                            defaultHeaders: headers, 
+                            addHeadersWithoutValidation: true));
                         lastResponse = result.Response;
 
                         if (lastResponse.StatusCode == System.Net.HttpStatusCode.OK)
