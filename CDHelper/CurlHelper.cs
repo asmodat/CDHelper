@@ -38,8 +38,8 @@ namespace CDHelper
 
                         var result = (await client.CURL(
                             HttpMethod.Get, uri, 
-                            content: null, 
-                            defaultHeaders: headers, 
+                            content: null,
+                            defaultHeaders: headers,
                             addHeadersWithoutValidation: true));
                         lastResponse = result.Response;
 

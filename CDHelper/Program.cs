@@ -8,7 +8,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.2.10";
+        public static string _version = "0.2.12";
 
         private static string ModerateString(string s, string[] mod_array)
         {
@@ -119,7 +119,7 @@ namespace CDHelper
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
                     ("ssh", "Accepts params: command"),
                     ("copy", "Accepts params: local"),
-                    ("curl", "Accepts params: GET"),
+                    ("curl", "Accepts params: GET, GET-FILE"),
                     ("docker", "Accepts params: gen"),
                     ("hash", "Accepts params: SHA256"),
                     ("text", "Accepts params: replace, dos2unix"),

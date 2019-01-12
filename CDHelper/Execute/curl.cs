@@ -68,7 +68,8 @@ namespace CDHelper
 
                         var sw = Stopwatch.StartNew();
 
-                        BasicAuthSecret basicAuthSecret;
+                        List<(string, string)> headers = new List<(string, string)>();
+                        BasicAuthSecret basicAuthSecret = null;
                         if (!basicAuth.IsNullOrEmpty() && File.Exists(basicAuth) && basicAuth.ToFileInfo().Extension == ".json")
                         {
                             Console.WriteLine($"Basic Auth file was found at: {basicAuth}");
@@ -77,8 +78,10 @@ namespace CDHelper
 
                             if (basicAuthSecret.login == null || basicAuthSecret.password == null)
                                 throw new Exception("Login or password was not defined within BasicAuthSecret json config file.");
+
+                            headers.Add(("Authorization", $"Bearer {($"{basicAuthSecret.login}:{basicAuthSecret.password}").Base64Encode()}"));
                         }
-                        else
+                        else if(!basicAuth.IsNullOrEmpty())
                             throw new NotSupportedException("Basic Auth Config file was not found, and no other authorization methods are supported.");
                         
                         Console.WriteLine($"Executing Curl GET command... timeout will occur if execution takes longer then {timeout} [ms]");
@@ -89,9 +92,7 @@ namespace CDHelper
                             timeout: timeout,
                             intensity: intensity,
                             requestTimeout: requestTimeout,
-                            headers: new (string, string)[] {
-                                ("Authorization", $"Bearer {($"{basicAuthSecret.login}:{basicAuthSecret.password}").Base64Encode()}")
-                            }).Result;
+                            headers: headers.ToArray()).Result;
 
                         var fileContent = response.Content.ReadAsByteArrayAsync().Result;
 
@@ -114,7 +115,9 @@ namespace CDHelper
                 case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "Curl Like Web Requests",
-                    ("GET", "Accepts params: uri, timeout (optional [ms], 15s default), intensity (default 1000 [ms]), request-timeout (optional [ms], 5s default)"));
+                    ("GET", "Accepts params: uri, timeout (optional [ms], 15s default), intensity (default 1000 [ms]), request-timeout (optional [ms], 5s default)"),
+                    ("GET-FILE", "Accepts params: uri, timeout (15s), intensity (1s), request-timeout (5s), output, override, basic-auth (.json file with login & password props)")
+                    );
                     break;
                 default:
                     {
