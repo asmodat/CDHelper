@@ -10,6 +10,16 @@
         public int port;
 
         /// <summary>
+        /// ports that are exposed in the container
+        /// </summary>
+        public int[] exposedPorts;
+
+        /// <summary>
+        /// ports mapping for container 'external:internal' format, eg: 80:3000
+        /// </summary>
+        public string[] portsMap;
+
+        /// <summary>
         /// project relative path in the repository
         /// </summary>
         public string relativePath;

@@ -91,7 +91,11 @@ namespace CDHelper
 
                         if (!dockerComposeInfo.Exists)
                         {
-                            var dockerCompose = DockerfileConfigGenerator.GetDockerCompose(imageName: imageName, port: exposedPort);
+                            var dockerCompose = DockerfileConfigGenerator.GetDockerCompose(
+                                imageName: imageName, 
+                                port: exposedPort,
+                                exposedPorts: config.exposedPorts,
+                                portsMap: config.portsMap);
 
                             dockerComposeInfo.WriteAllText(dockerCompose);
                             Console.WriteLine($"Saved docker compose file in: '{dockerComposeInfo.FullName}'");
@@ -146,6 +150,7 @@ namespace CDHelper
                             var dockerfile = DockerfileConfigGenerator.GetDockerfile(
                                 baseImage: config.baseImage,
                                 port: config.port,
+                                exposedPorts: config.exposedPorts,
                                 workingDirectory: config.workingDirectory,
                                 buildpackId: config.buildpackId,
                                 customBuildCommand: config.customBuildCommand,
