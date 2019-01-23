@@ -71,17 +71,18 @@ namespace CDHelper
                         var useEnginx = config.port != exposedPort && !nginxConfigInfo.Exists;
                         if (useEnginx)
                         {
+                            Console.WriteLine($"Generating nginx configuration in: '{nginxConfigInfo.FullName}'");
+
                             var nginxConfig = NginxConfigGenerator.GetSinglePortProxy(
                                 sourcePort: exposedPort, destinationPort: config.port);
 
                             nginxConfigInfo.WriteAllText(nginxConfig);
-                            Console.WriteLine($"Saved nginx configuration in: '{nginxConfigInfo.FullName}'");
                             Console.WriteLine($"Nginx Config: \n'{nginxConfig}'");
                         }
                         else
                             Console.WriteLine($"Nginx configuration will not be set because defined application port ({config.port}) is the same as exposed port ({exposedPort}) and request proxy is not needed or nginx config is already defined ({nginxConfigInfo.Exists}).");
 
-                        var dockerComposeInfo = PathEx.Combine(
+                        var dockerComposeInfo = PathEx.RuntimeCombine(
                             output.FullName,
                             config.relativePath,
                             "docker-compose.app.yml").ToFileInfo();
@@ -91,6 +92,8 @@ namespace CDHelper
 
                         if (!dockerComposeInfo.Exists)
                         {
+                            Console.WriteLine($"Generating docker compose file in: '{dockerComposeInfo.FullName}'");
+
                             var dockerCompose = DockerfileConfigGenerator.GetDockerCompose(
                                 imageName: imageName, 
                                 port: exposedPort,
@@ -98,14 +101,13 @@ namespace CDHelper
                                 portsMap: config.portsMap);
 
                             dockerComposeInfo.WriteAllText(dockerCompose);
-                            Console.WriteLine($"Saved docker compose file in: '{dockerComposeInfo.FullName}'");
                             Console.WriteLine($"Docker Compose: \n'{dockerCompose}'");
                         }
                         else
                             Console.WriteLine($"Docker Compose file was not creaed because it already existed.");
 
 
-                        var envFileInfo = PathEx.Combine(
+                        var envFileInfo = PathEx.RuntimeCombine(
                             output.FullName,
                             config.relativePath,
                             ".env").ToFileInfo();
@@ -115,6 +117,8 @@ namespace CDHelper
 
                         if (!envFileInfo.Exists)
                         {
+                            Console.WriteLine($"Generating Env file: '{envFileInfo.FullName}'");
+
                             if (!envFileInfo.Exists)
                                 envFileInfo.Create().Close();
 
@@ -130,14 +134,13 @@ namespace CDHelper
                                 envFileInfo.WriteAllText(text, System.IO.Compression.CompressionLevel.NoCompression, mode: FileMode.Create);
                             }
 
-                            Console.WriteLine($"Env file location: '{envFileInfo.FullName}'");
                             Console.WriteLine($"Env file: \n'{envFileInfo.ReadAllText()}'");
                         }
                         else
                             Console.WriteLine($"Env file was not creaed because it already existed.");
 
 
-                        var dockerfileInfo = PathEx.Combine(
+                        var dockerfileInfo = PathEx.RuntimeCombine(
                             output.FullName,
                             config.relativePath,
                             "Dockerfile").ToFileInfo();
@@ -147,6 +150,8 @@ namespace CDHelper
 
                         if (!dockerfileInfo.Exists)
                         {
+                            Console.WriteLine($"Generating dockerfile in: '{dockerfileInfo.FullName}'");
+
                             var dockerfile = DockerfileConfigGenerator.GetDockerfile(
                                 baseImage: config.baseImage,
                                 port: config.port,
@@ -159,7 +164,6 @@ namespace CDHelper
                                 env: config.env);
 
                             dockerfileInfo.WriteAllText(dockerfile);
-                            Console.WriteLine($"Saved dockerfile in: '{dockerfileInfo.FullName}'");
                             Console.WriteLine($"Dockerfile: \n'{dockerfile}'");
                         }
                         else
