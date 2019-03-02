@@ -31,8 +31,8 @@ namespace CDHelper.Processing
                 ports += $"      - \"{p}:{p}\"\r\n";
             }
 
-            expose.TrimEnd("\r\n");
-            ports.TrimEnd("\r\n");
+            expose = expose.TrimEnd("\r\n");
+            ports = ports.TrimEnd("\r\n");
 
             if (!portsMap.IsNullOrEmpty())
             {
@@ -57,7 +57,7 @@ namespace CDHelper.Processing
 
                     ports += $"      - \"{p1}:{p2}\"\r\n";
                 }
-                ports.TrimEnd("\r\n");
+                ports = ports.TrimEnd("\r\n");
             }
 
             return $@"version: '3.3'
@@ -107,8 +107,8 @@ services:
                 expose += $"{p} ";
                 ports += $"{p},";
             }
-            expose.TrimEnd(" ");
-            ports.TrimEnd(",");
+            expose = expose.TrimEnd(" ");
+            ports = ports.TrimEnd(",");
 
             var envs = "";
             if (!env.IsNullOrEmpty())
@@ -122,8 +122,6 @@ services:
             }
 
             workingDirectory = "/" + workingDirectory.TrimStart("/");
-
-
 
             return $@"
 #base image, e.g.: settlefinance/deployment:1.0

@@ -58,7 +58,7 @@ namespace CDHelper
                         else
                             Console.WriteLine($"Output directory: {output.FullName}");
 
-                        var nginxConfigInfo = PathEx.Combine(
+                        var nginxConfigInfo = PathEx.RuntimeCombine(
                             output.FullName,
                             config.relativePath,
                             "nginx.conf").ToFileInfo();

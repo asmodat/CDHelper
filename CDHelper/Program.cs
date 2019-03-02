@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using AsmodatStandard.Extensions;
 using AsmodatStandard.Extensions.Collections;
 using AsmodatStandard.IO;
@@ -8,7 +10,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.3.1";
+        public static string _version = "0.4.0";
 
         private static string ModerateString(string s, string[] mod_array)
         {
@@ -58,6 +60,41 @@ namespace CDHelper
                         Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {errMessage}");
                     }
                 }
+                else if (executionMode == "retry")
+                {
+                    int counter = 0;
+                    var sw = Stopwatch.StartNew();
+                    int times = (nArgs.ContainsKey("retry-times") ? nArgs["retry-times"] : "1").ToIntOrDefault(1);
+                    int delay = (nArgs.ContainsKey("retry-delay") ? nArgs["retry-delay"] : "1000").ToIntOrDefault(1);
+                    bool throws = (nArgs.ContainsKey("retry-throws") ? nArgs["retry-throws"] : "true").ToBoolOrDefault(true);
+                    int timeout = (nArgs.ContainsKey("retry-timeout") ? nArgs["retry-timeout"] : $"{60 * 3600}").ToIntOrDefault(60 * 3600);
+
+                    Console.WriteLine($"Execution with retry: Max: {times}, Delay: {delay} [ms], Throws: {(throws ? "Yes" : "No")}, Timeout: {timeout} [s]");
+
+                    do
+                    {
+                        Console.WriteLine($"Execution trial: {counter}/{(times + 1)}, Elapsed/Timeout: {sw.ElapsedMilliseconds / 1000}/{timeout} [s]");
+
+                        try
+                        {
+                            Execute(args);
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
+
+                            if ((sw.ElapsedMilliseconds / 1000) >= timeout || (throws && counter == times))
+                                throw;
+
+                            Console.WriteLine($"Execution retry delay: {delay} [ms]");
+                            Thread.Sleep(delay);
+                        }
+                    }
+                    while (++counter <= times);
+
+                    return;
+                }
                 else
                     throw new Exception($"[{TickTime.Now.ToLongDateTimeString()}] Unknown execution-mode: '{executionMode}', try: 'debug' or 'silent-errors'.");
             }
@@ -100,6 +137,9 @@ namespace CDHelper
                 case "bitbucket":
                     executeBitbucket(args);
                     break;
+                case "github":
+                    executeGithub(args);
+                    break;
                 case "copy":
                     executeCopy(args);
                     break;
@@ -121,6 +161,7 @@ namespace CDHelper
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET, GET-FILE"),
                     ("docker", "Accepts params: gen"),
+                    ("github", "Accepts params: on-change-process"),
                     ("hash", "Accepts params: SHA256"),
                     ("text", "Accepts params: replace, dos2unix"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
