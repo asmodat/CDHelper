@@ -5,12 +5,16 @@ using AsmodatStandard.Extensions;
 using AsmodatStandard.Extensions.Collections;
 using AsmodatStandard.IO;
 using AsmodatStandard.Types;
+using AsmodatStandard.Threading;
+using AsmodatStandard.Extensions.Threading;
+using System.Threading.Tasks;
 
 namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.4.0";
+        public static string _version = "0.5.0";
+        public static bool _debug = false;
 
         private static string ModerateString(string s, string[] mod_array)
         {
@@ -21,7 +25,7 @@ namespace CDHelper
             return s;
         }
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
 
@@ -46,13 +50,14 @@ namespace CDHelper
             {
                 if (executionMode == "debug")
                 {
-                    Execute(args);
+                    _debug = true;
+                    await Execute(args);
                 }
                 else if (executionMode == "silent-errors")
                 {
                     try
                     {
-                        Execute(args);
+                        await Execute(args);
                     }
                     catch (Exception ex)
                     {
@@ -77,7 +82,7 @@ namespace CDHelper
 
                         try
                         {
-                            Execute(args);
+                            await Execute(args);
                             return;
                         }
                         catch (Exception ex)
@@ -102,7 +107,7 @@ namespace CDHelper
             {
                 try
                 {
-                    Execute(args);
+                    await Execute(args);
                 }
                 catch(Exception ex)
                 {
@@ -115,7 +120,7 @@ namespace CDHelper
             Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Success");
         }
 
-        private static void Execute(string[] args)
+        private static async Task Execute(string[] args)
         {
             switch (args[0]?.ToLower().TrimStart("-"))
             {
@@ -140,6 +145,9 @@ namespace CDHelper
                 case "github":
                     executeGithub(args);
                     break;
+                case "scheduler":
+                    await executeScheduler(args);
+                    break;
                 case "copy":
                     executeCopy(args);
                     break;
@@ -162,6 +170,7 @@ namespace CDHelper
                     ("curl", "Accepts params: GET, GET-FILE"),
                     ("docker", "Accepts params: gen"),
                     ("github", "Accepts params: on-change-process"),
+                    ("scheduler", "Accepts params: github"),
                     ("hash", "Accepts params: SHA256"),
                     ("text", "Accepts params: replace, dos2unix"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),

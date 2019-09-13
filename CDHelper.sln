@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Asmodat Standard", "..\Asmo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Asmodat Standard Test", "..\Asmodat-Standard\Asmodat Standard Test\Asmodat Standard Test.csproj", "{EC8EF5C2-F45E-4581-A191-21D67A385D61}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GITWrapper", "..\GITWrapper\GITWrapper.csproj", "{40BF8B25-E2CA-4439-97B2-CEE940939142}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AWSWrapper", "..\AWSWrapper\AWSWrapper.csproj", "{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,22 @@ Global
 		{EC8EF5C2-F45E-4581-A191-21D67A385D61}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EC8EF5C2-F45E-4581-A191-21D67A385D61}.Release|x64.ActiveCfg = Release|x64
 		{EC8EF5C2-F45E-4581-A191-21D67A385D61}.Release|x64.Build.0 = Release|x64
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Debug|x64.Build.0 = Debug|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Release|x64.ActiveCfg = Release|Any CPU
+		{40BF8B25-E2CA-4439-97B2-CEE940939142}.Release|x64.Build.0 = Release|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Debug|x64.Build.0 = Debug|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Release|x64.ActiveCfg = Release|Any CPU
+		{52112AA2-05D9-4CE7-A487-EB8B64EDFBF5}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
