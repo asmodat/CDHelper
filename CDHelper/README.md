@@ -13,8 +13,7 @@ CDHelperVersion="v0.5.0" && \
  rm -f -v ./CDHelper-linux-x64.zip && \
  wget https://github.com/asmodat/CDHelper/releases/download/$CDHelperVersion/CDHelper-linux-x64.zip && \
  rm -rfv /usr/local/bin/CDHelper && \
- unzip CDHelper-linux-x64.zip -d && \
- /usr/local/bin/CDHelper && \
+ unzip CDHelper-linux-x64.zip -d /usr/local/bin/CDHelper && \
  chmod -R 555 /usr/local/bin/CDHelper
 ```
 > Create new service by appending following script using `nano /lib/systemd/system/cosmos.service` command.
