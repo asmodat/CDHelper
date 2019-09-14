@@ -15,7 +15,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        private static async Task<string> GetVariableByKey(string key, Dictionary<string, string> nArgs = null)
+        private static async Task<string> GetVariableByKey(string key, Dictionary<string, string> nArgs = null, bool throwIfNotFound = true)
         {
             var result = Environment.GetEnvironmentVariable(key);
             if (!result.IsNullOrEmpty())
@@ -27,15 +27,22 @@ namespace CDHelper
             if (!result.IsNullOrEmpty())
                 return result;
 
-            var tags = await EC2HelperEx.TryGetEnvironmentTags(timeoutSeconds: 5);
+            var tags = await EC2HelperEx.TryGetEnvironmentTags(timeoutSeconds: 60, throwIfNotFound: throwIfNotFound);
 
             if (tags.IsNullOrEmpty())
+            {
+                var msg = $"Instance Tag's were not found.";
+                if (throwIfNotFound)
+                    throw new Exception(msg);
+
+                Console.WriteLine(msg);
                 return null;
+            }
 
-            result = tags.GetValueOrDefault(key, @default: null);
+            result = tags.GetValueOrDefault(key: key, @default: null);
 
-            if (result == null)
-                throw new Exception($"Key '{key}' was not defined.");
+            if (throwIfNotFound && result.IsNullOrEmpty())
+                throw new Exception($"Key '{key ?? "undefined"}' was not found among following tags: {tags?.JsonSerialize() ?? "undefined"}.");
 
             return result;
         }

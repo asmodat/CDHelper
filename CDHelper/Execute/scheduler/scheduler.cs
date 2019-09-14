@@ -33,7 +33,7 @@ namespace CDHelper
                             Console.WriteLine($"Your Internet Connection is {(SilyWebClientEx.CheckInternetAccess(timeout: 5000) ? "" : "NOT")} available.");
 
                         Console.WriteLine($"Fetching scheduler info.");
-                        var workingDirectory = await GetVariableByKey("working_directory", nArgs: nArgs);
+                        var workingDirectory = (await GetVariableByKey("working_directory", nArgs: nArgs)).ToDirectoryInfo();
                         var githubSchedule = await GetVariableByKey("github_schedule", nArgs: nArgs);
                         var accessToken = await GetSecretHexToken("github_token", nArgs);
                         var user = GITWrapper.GitHubHelperEx.GetUserFromUrl(githubSchedule);
@@ -49,30 +49,33 @@ namespace CDHelper
                             branch = branch
                         });
 
-                        var contentDirectory = PathEx.RuntimeCombine(workingDirectory, repo).ToDirectoryInfo();
-                        var statusDirectory = PathEx.RuntimeCombine(workingDirectory, "status").ToDirectoryInfo();
+                        var contentDirectory = PathEx.RuntimeCombine(workingDirectory.FullName, repo).ToDirectoryInfo();
+                        var statusDirectory = PathEx.RuntimeCombine(workingDirectory.FullName, "status").ToDirectoryInfo();
                         var scheduleFileInfo = PathEx.RuntimeCombine(contentDirectory.FullName, scheduleLocation).ToFileInfo();
 
-                        contentDirectory.TryDelete(recursive: true);
-                        contentDirectory.TryCreate();
+                        contentDirectory.TryDelete(recursive: true, exception: out var contentDirectoryException);
+                        Console.WriteLine($"Removing git directory '{contentDirectory.FullName}' {(contentDirectory.Exists ? $"did NOT suceeded, error: {contentDirectoryException.JsonSerializeAsPrettyException()}" : "succeded")}.");
+
                         statusDirectory.TryCreate();
+                        CommandOutput result;
 
-                        var result = CLIHelper.Console("git init", workingDirectory: contentDirectory.FullName, redirectError: true);
+                        var pullCommand = $"git clone https://{accessToken}@github.com/{user}/{repo}.git --branch {branch}";
+                        result = CLIHelper.Console(pullCommand, workingDirectory: workingDirectory.FullName);
                         Console.WriteLine(result.JsonSerialize());
 
-                        var pullCommand = $"git pull https://{accessToken}@github.com/{user}/{repo}.git";
-                        result = CLIHelper.Console(pullCommand, workingDirectory: contentDirectory.FullName, redirectError: true);
-                        Console.WriteLine(result.JsonSerialize());
+                        var gitDirectory = PathEx.RuntimeCombine(contentDirectory.FullName, ".git").ToDirectoryInfo();
+                        gitDirectory.TryDelete(recursive: true);
+                        Console.WriteLine($"Removing git directory '{gitDirectory.FullName}' {(gitDirectory.Exists ? "did NOT" : "")} succeded.");
 
                         if (!RuntimeEx.IsWindows())
                         {
-                            result = CLIHelper.Console("chmod 555 -R ./", workingDirectory: contentDirectory.FullName, redirectError: true);
+                            result = CLIHelper.Console($"chmod 777 -R ./{repo}", workingDirectory: workingDirectory.FullName);
                             Console.WriteLine(result.JsonSerialize());
                         }
 
                         if (!scheduleFileInfo.Exists)
                         {
-                            Console.WriteLine($"FAILURE, schedule file '{scheduleFileInfo.FullName}' doe not exist or was not defined.");
+                            Console.WriteLine($"FAILURE, schedule file '{scheduleFileInfo.FullName}' does not exist or was not defined.");
                             return false;
                         }
 

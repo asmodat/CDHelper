@@ -35,9 +35,9 @@ namespace CDHelper
                         CommandOutput result;
 
                         if (schedule.timeout > 0)
-                            result = await TaskEx.ToTask(CLIHelper.Console, cmd, rootSource.FullName, true, schedule.timeout);
+                            result = await TaskEx.ToTask(CLIHelper.Console, cmd, rootSource.FullName, schedule.timeout);
                         else
-                            result = await TaskEx.ToTask(CLIHelper.Console, cmd, rootSource.FullName, true, 0);
+                            result = await TaskEx.ToTask(CLIHelper.Console, cmd, rootSource.FullName, 0);
 
                         if (!result.Error.IsNullOrEmpty() && schedule.throwOnFailure)
                         {

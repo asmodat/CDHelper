@@ -22,7 +22,10 @@ namespace CDHelper
             if (hexToken.IsHex())
                 return hexToken;
 
-            Console.WriteLine($"Fetching hex token from secrets manager.");
+            if (hexToken.IsNullOrEmpty())
+                throw new Exception($"Value associated with the key '{key ?? "undefined"}' was not found.");
+
+            Console.WriteLine($"Variable {hexToken ?? "undefined"} of the Key {key ?? "undefined"} was not a hex token, fetching from secrets manager...");
             var sm = new SMHelper();
             var result = (await sm.GetSecret(hexToken)).JsonDeserialize<AmazonSecretsToken>()?.token;
 
