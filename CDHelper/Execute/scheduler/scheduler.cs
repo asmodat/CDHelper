@@ -160,7 +160,6 @@ namespace CDHelper
                         if (deploymentConfig.sleep > 0)
                             await Task.Delay(deploymentConfig.sleep);
 
-
                         return true;
                     }
                 case "help":
