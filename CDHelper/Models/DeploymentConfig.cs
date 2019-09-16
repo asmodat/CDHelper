@@ -21,14 +21,13 @@ namespace CDHelper.Models
             if (schedule.schedules.IsNullOrEmpty())
                 return false;
 
-            var execute = false;
-            if (!execute && !schedule.cron.IsNullOrEmpty())
-                execute = schedule.cron.ToCron().Compare(DateTime.UtcNow) == 0;
+            if (schedule.cron?.ToCron()?.Compare(DateTime.UtcNow) == 0)
+                return true;
 
-            if (!execute && schedule.trigger > 0 && scheduleOld.trigger < schedule.trigger)
-                execute = true;
+            if (schedule.trigger > 0 && scheduleOld.trigger < schedule.trigger)
+                return true;
 
-            return execute;
+            return false;
         }
 
         public static DeploymentConfig LoadDeploymentConfig(this DeploymentConfig deployment, DirectoryInfo rootStatus)

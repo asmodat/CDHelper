@@ -10,28 +10,47 @@ namespace CDHelper.Models
 {
     public static class ExecutionScheduleEx
     {
+
+        public static FileInfo GetLogFileInfo(this ExecutionSchedule s, DirectoryInfo logDirectory)
+            => PathEx.RuntimeCombine(logDirectory.FullName, $"{(s.GetFileSafeId() ?? "tmp")}.log").ToFileInfo();
+
+        public static FileInfo GetStatusFileInfo(this ExecutionSchedule s, DirectoryInfo rootDirectory)
+            => PathEx.RuntimeCombine(rootDirectory.FullName, $"{(s.GetFileSafeId() ?? "tmp")}.json").ToFileInfo();
+
+        public static string GetFileSafeId(this ExecutionSchedule s)
+            => s?.id?.ToAlphanumeric(whitelist: new char[] { '-', '_'});
+
         public static bool IsTriggered(this ExecutionSchedule schedule, ExecutionSchedule scheduleOld, bool masterTrigger)
         {
             if (schedule?.enable != true)
+            {
+                Console.WriteLine($"Schedule '{schedule.id}' was not enabled.");
                 return false;
+            }
 
             if (schedule.max > 0 && schedule.max <= scheduleOld.executions)
+            {
+                Console.WriteLine($"Schedule '{schedule.id}' was executed maximum number of {schedule.max} times.");
                 return false;
+            }
 
             if (schedule.commands.IsNullOrEmpty())
+            {
+                Console.WriteLine($"Schedule '{schedule.id}' commands were not defined.");
                 return false;
+            }
 
             if (schedule.enableMasterTrigger && masterTrigger)
                 return true;
 
-            var execute = false;
-            if (!execute && !schedule.cron.IsNullOrEmpty())
-                execute = schedule.cron.ToCron().Compare(DateTime.UtcNow) == 0;
+            if (schedule.cron?.ToCron()?.Compare(DateTime.UtcNow) == 0)
+                return true;
 
-            if (!execute && schedule.trigger > 0 && scheduleOld.trigger < schedule.trigger)
-                execute = true;
+            if (schedule.trigger > 0 && scheduleOld.trigger < schedule.trigger)
+                return true;
 
-            return execute;
+            //Console.WriteLine($"Schedule '{schedule.id}' trigger: '{schedule.trigger}/{scheduleOld.trigger}', cron: '{schedule.cron ?? "undefined"}' was NOT actived.");
+            return false;
         }
 
         public static ExecutionSchedule LoadExecutionSchedule(this ExecutionSchedule schedule, DirectoryInfo rootStatus)
@@ -39,7 +58,7 @@ namespace CDHelper.Models
             if (schedule.id.IsNullOrEmpty())
                 throw new Exception("Schedule ID was not defined, could not load.");
 
-            var statusFile = PathEx.RuntimeCombine(rootStatus.FullName, $"{schedule.id.SHA256().ToHexString()}.json").ToFileInfo();
+            var statusFile = schedule.GetStatusFileInfo(rootStatus);
 
             if (!statusFile.Directory.Exists)
                 statusFile.Directory.Create();
@@ -52,7 +71,7 @@ namespace CDHelper.Models
 
         public static void UpdateExecutionSchedule(this ExecutionSchedule schedule, DirectoryInfo rootStatus)
         {
-            var statusFile = PathEx.RuntimeCombine(rootStatus.FullName, $"{schedule.id.SHA256().ToHexString()}.json").ToFileInfo();
+            var statusFile = schedule.GetStatusFileInfo(rootStatus);
 
             if (!statusFile.Directory.Exists)
                 statusFile.Directory.Create();
@@ -119,6 +138,11 @@ namespace CDHelper.Models
         public bool finalizeOnFailure { get; set; } = false;
 
         public bool enableMasterTrigger { get; set; } = false;
+
+        /// <summary>
+        /// Stop execution of all schedules after successfull execution
+        /// </summary>
+        public bool breakAllOnFinalize { get; set; } = false;
 
         /// <summary>
         /// Max number of the successfull schedule executions

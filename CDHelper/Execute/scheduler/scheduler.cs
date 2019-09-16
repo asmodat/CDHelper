@@ -32,12 +32,26 @@ namespace CDHelper
                         if (Environment.GetEnvironmentVariable("test_connection").ToBoolOrDefault(false))
                             Console.WriteLine($"Your Internet Connection is {(SilyWebClientEx.CheckInternetAccess(timeout: 5000) ? "" : "NOT")} available.");
 
+                        var userWhitelist = nArgs.GetValueOrDefault("users")?.Split(',');
+                        var repositoriesWhitelist = nArgs.GetValueOrDefault("repositories")?.Split(',');
+
                         Console.WriteLine($"Fetching scheduler info.");
                         var workingDirectory = (await GetVariableByKey("working_directory", nArgs: nArgs)).ToDirectoryInfo();
                         var githubSchedule = await GetVariableByKey("github_schedule", nArgs: nArgs);
-                        var accessToken = await GetSecretHexToken("github_token", nArgs);
+                        
                         var user = GITWrapper.GitHubHelperEx.GetUserFromUrl(githubSchedule);
+
+                        if (!userWhitelist.IsNullOrEmpty() && !userWhitelist.Any(x => x == user))
+                            throw new Exception($"User was specified but, user '{user ?? "undefined"}' was not present among whitelisted users: {userWhitelist.JsonSerialize()}");
+
+                        var accessToken = await GetSecretHexToken("github_token", nArgs);
+
                         var repo = GITWrapper.GitHubHelperEx.GetRepoFromUrl(githubSchedule);
+
+
+                        if (!repositoriesWhitelist.IsNullOrEmpty() && !repositoriesWhitelist.Any(x => x == user))
+                            throw new Exception($"Repository was specified but, repo '{repo ?? "undefined"}' was not present among whitelisted repositories: {repositoriesWhitelist.JsonSerialize()}");
+
                         var branch = GITWrapper.GitHubHelperEx.GetBranchFromUrl(githubSchedule);
                         var scheduleLocation = GITWrapper.GitHubHelperEx.GetFileFromUrl(githubSchedule);
 
@@ -51,6 +65,7 @@ namespace CDHelper
 
                         var contentDirectory = PathEx.RuntimeCombine(workingDirectory.FullName, repo).ToDirectoryInfo();
                         var statusDirectory = PathEx.RuntimeCombine(workingDirectory.FullName, "status").ToDirectoryInfo();
+                        var logsDirectory = PathEx.RuntimeCombine(workingDirectory.FullName, "logs").ToDirectoryInfo();
                         var scheduleFileInfo = PathEx.RuntimeCombine(contentDirectory.FullName, scheduleLocation).ToFileInfo();
 
                         contentDirectory.TryDelete(recursive: true, exception: out var contentDirectoryException);
@@ -99,39 +114,68 @@ namespace CDHelper
                             .Where(x => !(x?.id).IsNullOrEmpty() && x.parallelizable == true)
                             ?.OrderBy(x => x.priority)?.DistinctBy(x => x.id)?.ToArray();
 
-                        async Task TryCatchExecute(ExecutionSchedule s) {
-                            if (s == null)
+                        var breakAll = false;
+                        async Task TryCatchExecute(ExecutionSchedule s)
+                        {
+                            var sOld = s.LoadExecutionSchedule(contentDirectory);
+
+                            if (s == null || sOld == null)
+                            {
+                                Console.WriteLine($"New or old schedule could not be found.");
                                 return;
+                            }
 
-                            Console.WriteLine($"Processing executioon schedule '{s.id}', parralelized: {s.parallelizable}.");
+                            if(!s.IsTriggered(sOld, masterTrigger))
+                            {
+                                Console.WriteLine($"WARNING, schedule '{s?.id ?? "undefined"}' execution was not triggered.");
+                                return;
+                            }
 
-                            if(s.delay > 0)
+                            
+                            Console.WriteLine($"Processing executioon schedule '{s.id}', parralelized: {s.parallelizable}, cron: {s.cron ?? "null"}, trigger: {s.trigger}/{sOld.trigger}.");
+
+                            if (s.delay > 0)
                                 await Task.Delay(s.delay);
 
                             if (_debug)
                             {
-                                await ProcessSchedule(s, contentDirectory, statusDirectory, masterTrigger: masterTrigger);
+                                Console.WriteLine($"WARNING! github schedule will be processed in DEBUG mode");
+                                await ProcessSchedule(s, sOld, contentDirectory, statusDirectory, logsDirectory, masterTrigger: masterTrigger);
                                 return;
                             }
 
                             try
                             {
-                                await ProcessSchedule(s, contentDirectory, statusDirectory, masterTrigger: masterTrigger);
+                                await ProcessSchedule(s, sOld, contentDirectory, statusDirectory, logsDirectory, masterTrigger: masterTrigger);
+                                breakAll = s.breakAllOnFinalize;
 
-                                if(s.sleep > 0)
+                                if (s.sleep > 0)
                                     await Task.Delay(s.sleep);
                             }
                             catch (Exception ex)
                             {
-                                if (deploymentConfig.throwOnFailure == true)
+                                try
                                 {
-                                    if(deploymentConfig.finalizeOnFailure)
-                                        deploymentConfig.UpdateDeploymentConfig(statusDirectory);
+                                    if (deploymentConfig.throwOnFailure == true)
+                                    {
+                                        if (deploymentConfig.finalizeOnFailure)
+                                        {
+                                            deploymentConfig.UpdateDeploymentConfig(statusDirectory);
+                                            breakAll = s.breakAllOnFinalize;
+                                        }
 
-                                    throw;
+                                        throw;
+                                    }
+
+                                    Console.WriteLine($"FAILED! execution of schedule '{s.id}', parralelized: {s.parallelizable}, error: {ex.JsonSerializeAsPrettyException()}.");
                                 }
+                                finally
+                                {
 
-                                Console.WriteLine($"FAILED! execution of schedule '{s.id}', parralelized: {s.parallelizable}, error: {ex.JsonSerializeAsPrettyException()}.");
+                                    var logPath = PathEx.Combine(logsDirectory.FullName, $"{s.GetFileSafeId() ?? "tmp.log"}.log").ToFileInfo();
+                                    if (logPath.TryCreate())
+                                        logPath.AppendAllText(ex.JsonSerializeAsPrettyException());
+                                }
                             }
                         }
 
