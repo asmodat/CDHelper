@@ -5,16 +5,15 @@ using AsmodatStandard.Extensions;
 using AsmodatStandard.Extensions.Collections;
 using AsmodatStandard.IO;
 using AsmodatStandard.Types;
-using AsmodatStandard.Threading;
-using AsmodatStandard.Extensions.Threading;
 using System.Threading.Tasks;
 
 namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.5.5";
+        public static string _version = "0.5.8";
         public static bool _debug = false;
+        public static bool _silent = false;
 
         private static string ModerateString(string s, string[] mod_array)
         {
@@ -27,7 +26,11 @@ namespace CDHelper
 
         static async Task Main(string[] args)
         {
-            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
+            var nArgs = CLIHelper.GetNamedArguments(args);
+            _silent = nArgs.GetValueOrDefault("silent").ToBoolOrDefault(false);
+
+            if(!_silent)
+                Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
 
             if (args.Length < 1)
             {
@@ -35,13 +38,13 @@ namespace CDHelper
                 throw new Exception("At least 1 argument must be specified.");
             }
 
-            var nArgs = CLIHelper.GetNamedArguments(args);
             var hide_input_values = nArgs.GetValueOrDefault("hide-input-values", "[ ]").JsonDeserialize<string[]>();
 
             if (args.Length > 1 && !nArgs.GetValueOrDefault("hide-input").ToBoolOrDefault(false))
             {
                 var nArgsString = nArgs.JsonSerialize(Newtonsoft.Json.Formatting.Indented);
-                Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{ModerateString(nArgsString, hide_input_values)}\n");
+                if (!_silent)
+                    Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{ModerateString(nArgsString, hide_input_values)}\n");
             }
 
             string executionMode;
@@ -74,11 +77,13 @@ namespace CDHelper
                     bool throws = (nArgs.ContainsKey("retry-throws") ? nArgs["retry-throws"] : "true").ToBoolOrDefault(true);
                     int timeout = (nArgs.ContainsKey("retry-timeout") ? nArgs["retry-timeout"] : $"{60 * 3600}").ToIntOrDefault(60 * 3600);
 
-                    Console.WriteLine($"Execution with retry: Max: {times}, Delay: {delay} [ms], Throws: {(throws ? "Yes" : "No")}, Timeout: {timeout} [s]");
+                    if (!_silent)
+                        Console.WriteLine($"Execution with retry: Max: {times}, Delay: {delay} [ms], Throws: {(throws ? "Yes" : "No")}, Timeout: {timeout} [s]");
 
                     do
                     {
-                        Console.WriteLine($"Execution trial: {counter}/{(times + 1)}, Elapsed/Timeout: {sw.ElapsedMilliseconds / 1000}/{timeout} [s]");
+                        if (!_silent)
+                            Console.WriteLine($"Execution trial: {counter}/{(times + 1)}, Elapsed/Timeout: {sw.ElapsedMilliseconds / 1000}/{timeout} [s]");
 
                         try
                         {
@@ -87,12 +92,14 @@ namespace CDHelper
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
+                            if (!_silent)
+                                Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
 
                             if ((sw.ElapsedMilliseconds / 1000) >= timeout || (throws && counter == times))
                                 throw;
 
-                            Console.WriteLine($"Execution retry delay: {delay} [ms]");
+                            if (!_silent)
+                                Console.WriteLine($"Execution retry delay: {delay} [ms]");
                             Thread.Sleep(delay);
                         }
                     }
@@ -145,14 +152,23 @@ namespace CDHelper
                 case "github":
                     executeGithub(args);
                     break;
+                case "email":
+                    await executeEmail(args);
+                    break;
                 case "scheduler":
                     await executeScheduler(args);
                     break;
                 case "copy":
                     executeCopy(args);
                     break;
+                case "cli":
+                    executeCLI(args);
+                    break;
                 case "text":
                     executeText(args);
+                    break;
+                case "time":
+                    executeTime(args);
                     break;
                 case "docker":
                     executeDocker(args);
@@ -160,19 +176,22 @@ namespace CDHelper
                 case "version":
                 case "ver":
                 case "v":
-                    Console.WriteLine($"Version: v{_version}");
+                    Console.WriteLine($"v{_version}");
                     break;
                 case "help":
                 case "h":
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
                     ("ssh", "Accepts params: command"),
+                    ("cli", "Accepts params: command"),
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET, GET-FILE"),
                     ("docker", "Accepts params: gen"),
                     ("github", "Accepts params: on-change-process"),
+                    ("email", "Accepts params: send"),
                     ("scheduler", "Accepts params: github"),
                     ("hash", "Accepts params: SHA256"),
                     ("text", "Accepts params: replace, dos2unix"),
+                    ("time", "Accepts params: add, unix2timestamp"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
                     ("RSA", "Accepts params: create-key, sign, verify"),
                     ("bitbucket", "Accepts params: pull-approve, pull-unapprove, pull-comment"),

@@ -4,18 +4,9 @@ using AsmodatStandard.IO;
 using AsmodatStandard.Extensions.IO;
 using AsmodatStandard.Extensions.Collections;
 using System.IO;
-using System.Threading;
-using System.Collections.Generic;
-using AWSWrapper.EC2;
 using System.Threading.Tasks;
-using AsmodatStandard.Networking;
-using AWSWrapper.SM;
 using CDHelper.Models;
-using AsmodatStandard.Cryptography;
-using AsmodatStandard.Types;
-using AsmodatStandard.Threading;
 using AsmodatStandard.Extensions.Threading;
-using System.Linq;
 
 namespace CDHelper
 {
@@ -37,12 +28,32 @@ namespace CDHelper
             {
                 foreach (var cmd in schedule.commands)
                 {
+                    var command = cmd?.Trim();
+
+                    if (command.IsNullOrEmpty())
+                        continue;
+
                     CommandOutput result;
+                    string file;
+                    string args;
+
+                    if (command.Contains(" "))
+                    {
+                        var parts = command.SplitByFirst(' ');
+                        file = parts[0];
+                        args = parts[1];
+                    }
+                    else
+                    {
+                        file = command;
+                        args = "";
+                    }
 
                     if (schedule.timeout > 0)
-                        result = await TaskEx.ToTask(CLIHelper.Console, cmd, rootSource.FullName, schedule.timeout);
+                        result = await TaskEx.ToTask(CLIHelper.Command, file, args, rootSource.FullName, schedule.timeout);
                     else
-                        result = await TaskEx.ToTask(CLIHelper.Console, cmd, rootSource.FullName, 0);
+                        result = await TaskEx.ToTask(CLIHelper.Command, file, args, rootSource.FullName, 0);
+
 
                     if (!result.Error.IsNullOrEmpty() && schedule.throwOnFailure)
                     {

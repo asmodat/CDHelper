@@ -4,16 +4,9 @@ using AsmodatStandard.IO;
 using AsmodatStandard.Extensions.IO;
 using AsmodatStandard.Extensions.Collections;
 using AsmodatStandard.Extensions.Threading;
-using AsmodatStandard.Threading;
-using AsmodatStandard.Types;
-using AsmodatStandard.Extensions.Types;
-using System.IO;
-using System.Threading;
 using System.Collections.Generic;
-using AWSWrapper.EC2;
 using System.Threading.Tasks;
 using AsmodatStandard.Networking;
-using AWSWrapper.SM;
 using CDHelper.Models;
 using System.Linq;
 
@@ -117,7 +110,7 @@ namespace CDHelper
                         var breakAll = false;
                         async Task TryCatchExecute(ExecutionSchedule s)
                         {
-                            var sOld = s.LoadExecutionSchedule(contentDirectory);
+                            var sOld = s.LoadExecutionSchedule(statusDirectory);
 
                             if (s == null || sOld == null)
                             {
