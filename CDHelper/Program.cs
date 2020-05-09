@@ -11,17 +11,26 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.5.8";
+        public static string _version = "0.6.2";
         public static bool _debug = false;
         public static bool _silent = false;
+        public static string[] _hide_input_values = new string[0];
 
-        private static string ModerateString(string s, string[] mod_array)
+        private static string ModerateString(string s, string[] hide = null)
         {
-            foreach (var v in mod_array)
-                if (!v.IsNullOrEmpty())
-                    s = s.Replace(v, "*".Repeat(v.Length));
+            var hideStrings = hide.Merge(_hide_input_values);
+            if (!hideStrings.IsNullOrEmpty())
+                foreach (var v in hideStrings)
+                    if (!v.IsNullOrEmpty())
+                        s = s.Replace(v, "*".Repeat(v.Length));
 
             return s;
+        }
+
+        public static void WriteLine(string s)
+        {
+            if (!_silent)
+                Console.WriteLine(ModerateString(s));
         }
 
         static async Task Main(string[] args)
@@ -29,22 +38,20 @@ namespace CDHelper
             var nArgs = CLIHelper.GetNamedArguments(args);
             _silent = nArgs.GetValueOrDefault("silent").ToBoolOrDefault(false);
 
-            if(!_silent)
-                Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
+            WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
 
             if (args.Length < 1)
             {
-                Console.WriteLine("Try 'help' to find out list of available commands.");
+                WriteLine("Try 'help' to find out list of available commands.");
                 throw new Exception("At least 1 argument must be specified.");
             }
 
-            var hide_input_values = nArgs.GetValueOrDefault("hide-input-values", "[ ]").JsonDeserialize<string[]>();
+            _hide_input_values = nArgs.GetValueOrDefault("hide-input-values", "[ ]").JsonDeserialize<string[]>();
 
             if (args.Length > 1 && !nArgs.GetValueOrDefault("hide-input").ToBoolOrDefault(false))
             {
                 var nArgsString = nArgs.JsonSerialize(Newtonsoft.Json.Formatting.Indented);
-                if (!_silent)
-                    Console.WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{ModerateString(nArgsString, hide_input_values)}\n");
+                WriteLine($"Executing command: '{args[0]} {args[1]}' Named Arguments: \n{nArgsString}\n");
             }
 
             string executionMode;
@@ -64,8 +71,7 @@ namespace CDHelper
                     }
                     catch (Exception ex)
                     {
-                        var errMessage = ModerateString(ex.JsonSerializeAsPrettyException(), hide_input_values);
-                        Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {errMessage}");
+                        WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
                     }
                 }
                 else if (executionMode == "retry")
@@ -77,13 +83,11 @@ namespace CDHelper
                     bool throws = (nArgs.ContainsKey("retry-throws") ? nArgs["retry-throws"] : "true").ToBoolOrDefault(true);
                     int timeout = (nArgs.ContainsKey("retry-timeout") ? nArgs["retry-timeout"] : $"{60 * 3600}").ToIntOrDefault(60 * 3600);
 
-                    if (!_silent)
-                        Console.WriteLine($"Execution with retry: Max: {times}, Delay: {delay} [ms], Throws: {(throws ? "Yes" : "No")}, Timeout: {timeout} [s]");
+                    WriteLine($"Execution with retry: Max: {times}, Delay: {delay} [ms], Throws: {(throws ? "Yes" : "No")}, Timeout: {timeout} [s]");
 
                     do
                     {
-                        if (!_silent)
-                            Console.WriteLine($"Execution trial: {counter}/{(times + 1)}, Elapsed/Timeout: {sw.ElapsedMilliseconds / 1000}/{timeout} [s]");
+                        WriteLine($"Execution trial: {counter}/{(times + 1)}, Elapsed/Timeout: {sw.ElapsedMilliseconds / 1000}/{timeout} [s]");
 
                         try
                         {
@@ -92,14 +96,12 @@ namespace CDHelper
                         }
                         catch (Exception ex)
                         {
-                            if (!_silent)
-                                Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
+                            WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
 
                             if ((sw.ElapsedMilliseconds / 1000) >= timeout || (throws && counter == times))
                                 throw;
 
-                            if (!_silent)
-                                Console.WriteLine($"Execution retry delay: {delay} [ms]");
+                            WriteLine($"Execution retry delay: {delay} [ms]");
                             Thread.Sleep(delay);
                         }
                     }
@@ -118,13 +120,12 @@ namespace CDHelper
                 }
                 catch(Exception ex)
                 {
-                    var errMessage = ModerateString(ex.JsonSerializeAsPrettyException(), hide_input_values);
-                    Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {errMessage}");
+                    WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Failure, Error Message: {ex.JsonSerializeAsPrettyException()}");
                     throw new Exception($"CDHelper v{_version} failed during execution of {args[0]} command.");
                 }
             }
 
-            Console.WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Success");
+            WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] Success");
         }
 
         private static async Task Execute(string[] args)
@@ -158,6 +159,9 @@ namespace CDHelper
                 case "scheduler":
                     await executeScheduler(args);
                     break;
+                case "console":
+                    executeConsole(args);
+                    break;
                 case "copy":
                     executeCopy(args);
                     break;
@@ -183,6 +187,7 @@ namespace CDHelper
                     HelpPrinter($"{args[0]}", "CDHelper List of available commands",
                     ("ssh", "Accepts params: command"),
                     ("cli", "Accepts params: command"),
+                    ("console", "Accepts params: prompt-read-line"),
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET, GET-FILE"),
                     ("docker", "Accepts params: gen"),

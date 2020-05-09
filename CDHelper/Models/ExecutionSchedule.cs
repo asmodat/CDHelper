@@ -10,7 +10,6 @@ namespace CDHelper.Models
 {
     public static class ExecutionScheduleEx
     {
-
         public static FileInfo GetLogFileInfo(this ExecutionSchedule s, DirectoryInfo logDirectory)
             => PathEx.RuntimeCombine(logDirectory.FullName, $"{(s.GetFileSafeId() ?? "tmp")}.log").ToFileInfo();
 
@@ -18,7 +17,7 @@ namespace CDHelper.Models
             => PathEx.RuntimeCombine(rootDirectory.FullName, $"{(s.GetFileSafeId() ?? "tmp")}.json").ToFileInfo();
 
         public static string GetFileSafeId(this ExecutionSchedule s)
-            => s?.id?.ToAlphanumeric(whitelist: new char[] { '-', '_'});
+            => s?.id?.ToAlphaNumeric(whitelist: new char[] { '-', '_'});
 
         public static bool IsTriggered(this ExecutionSchedule schedule, ExecutionSchedule scheduleOld, bool masterTrigger)
         {

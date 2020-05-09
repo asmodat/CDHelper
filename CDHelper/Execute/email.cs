@@ -4,7 +4,6 @@ using AsmodatStandard.IO;
 using AsmodatStandard.Extensions.IO;
 using AsmodatStandard.Extensions.Collections;
 using System.IO;
-using System.Threading;
 using AsmodatStandard.Networking;
 using AWSWrapper.SM;
 using System.Threading.Tasks;
@@ -28,18 +27,30 @@ namespace CDHelper
                         var subject = nArgs["subject"];
                         var attachments = nArgs.GetValueOrDefault("attachments")?.Split(",");
                         var secret = nArgs.GetValueOrDefault("aws-secret");
+                        var envSecret = nArgs.GetValueOrDefault("env-secret", @default: "SMTP_SECRET");
                         var html = nArgs.GetValueOrDefault("html").ToBoolOrDefault(false);
                         var recursive = nArgs.GetValueOrDefault("recursive").ToBoolOrDefault(false);
                         var throwIfAttachementNotFound = nArgs.GetValueOrDefault("throwIfAttachementNotFound").ToBoolOrDefault(false);
-                        SmtpMailSetup smtpSecret;
-                        if (!secret.IsNullOrEmpty())
+                        var throwIfAttachementTooBig = nArgs.GetValueOrDefault("throwIfAttachementTooBig").ToBoolOrDefault(false);
+                        var attachementMaxSize = nArgs.GetValueOrDefault("throwIfAttachementTooBig").ToIntOrDefault(25 * 1024 * 1024);
+                        SmtpMailSetup smtpSecret = null;
+
+                        if (secret.IsNullOrEmpty())
+                        {
+                            secret = Environment.GetEnvironmentVariable(envSecret);
+                            if (!secret.IsNullOrEmpty())
+                                smtpSecret = secret.JsonDeserialize<SmtpMailSetup>();
+                        }
+                        else
                         {
                             var sm = new SMHelper();
                             var sgs = await sm.GetSecret(name: secret);
-                            smtpSecret = sgs.JsonDeserialize<SmtpMailSetup>();                           
+                            smtpSecret = sgs.JsonDeserialize<SmtpMailSetup>();
                         }
-                        else
-                            throw new Exception("Credentials, e.g aws-secret was not specfied");
+
+                        if (smtpSecret == null)
+                            throw new Exception("SMTP secret (aws-secret or env-secret) was NOT specified.");
+
                          var smtpm = new SmtpMail(smtpSecret);
 
                         if (!body.IsNullOrEmpty())
@@ -61,10 +72,11 @@ namespace CDHelper
                             isBodyHTML: html, 
                             attachments: attachments, 
                             recursive: recursive,
-                            throwIfAttachementNotFound: throwIfAttachementNotFound);
+                            throwIfAttachementNotFound: throwIfAttachementNotFound,
+                            throwIfAttachementTooBig: throwIfAttachementTooBig,
+                            attachementMaxSize: attachementMaxSize);
 
-                        if(!_silent)
-                            Console.WriteLine($"SUCCESS, Email was send to {to ?? "undefined"}. ");
+                        WriteLine($"SUCCESS, Email was send to {to ?? "undefined"}. ");
                     }
                     ; break;
                 case "help":
@@ -73,7 +85,7 @@ namespace CDHelper
                 case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "Emailing",
-                    ("sent", "Accepts params: aws-secret, from, to, subject, body, html (default: false), recursive (default: false)"));
+                    ("sent", "Accepts params: aws-secret, from, to, subject, body, html (default: false), recursive (default: false), throwIfAttachementNotFound (default: false), throwIfAttachementTooBig (default: false), attachementMaxSize (default: 26214400)"));
                     break;
                 default:
                     {
