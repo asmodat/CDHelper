@@ -1,5 +1,20 @@
 # CDHelper
-Continuous Deployment CLI Helper Tool
+The most powerfull consol tool for CI/CD
+
+## Features
+* curl helper
+* simple ssh
+* text processing
+* hashing helper
+* docker helper
+* copy helper
+* console helper (prompt reader)
+* command helper
+* bitbucket integrations
+* github integrations
+* task scheduler
+* aes encrypton/decryption
+* date/time helper
 
 ## Installation
 

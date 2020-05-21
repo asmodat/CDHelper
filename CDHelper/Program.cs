@@ -11,7 +11,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.6.2";
+        public static string _version = "0.6.3";
         public static bool _debug = false;
         public static bool _silent = false;
         public static string[] _hide_input_values = new string[0];
@@ -191,11 +191,11 @@ namespace CDHelper
                     ("copy", "Accepts params: local"),
                     ("curl", "Accepts params: GET, GET-FILE"),
                     ("docker", "Accepts params: gen"),
-                    ("github", "Accepts params: on-change-process"),
                     ("email", "Accepts params: send"),
-                    ("scheduler", "Accepts params: github"),
+                    ("github", "Accepts params: on-change-process"),
                     ("hash", "Accepts params: SHA256"),
-                    ("text", "Accepts params: replace, dos2unix"),
+                    ("scheduler", "Accepts params: github"),
+                    ("text", "Accepts params: lineswap, replace, dos2unix"),
                     ("time", "Accepts params: add, unix2timestamp"),
                     ("AES", "Accepts params: create-key, encrypt, decrypt"),
                     ("RSA", "Accepts params: create-key, sign, verify"),
