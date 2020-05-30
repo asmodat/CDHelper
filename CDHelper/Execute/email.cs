@@ -21,10 +21,9 @@ namespace CDHelper
             {
                 case "send":
                     {
-                        var from = nArgs["from"];
                         var to = nArgs["to"];
-                        var body = nArgs["body"];
-                        var subject = nArgs["subject"];
+                        var body = nArgs.GetValueOrDefault("body", @default: "");
+                        var subject = nArgs.GetValueOrDefault("subject", @default: "");
                         var attachments = nArgs.GetValueOrDefault("attachments")?.Split(",");
                         var secret = nArgs.GetValueOrDefault("aws-secret");
                         var envSecret = nArgs.GetValueOrDefault("env-secret", @default: "SMTP_SECRET");
@@ -37,7 +36,7 @@ namespace CDHelper
 
                         if (secret.IsNullOrEmpty())
                         {
-                            secret = Environment.GetEnvironmentVariable(envSecret);
+                            secret = envSecret.ContainsAll("{","}","host","port") ? envSecret : Environment.GetEnvironmentVariable(envSecret);
                             if (!secret.IsNullOrEmpty())
                                 smtpSecret = secret.JsonDeserialize<SmtpMailSetup>();
                         }
@@ -49,9 +48,14 @@ namespace CDHelper
                         }
 
                         if (smtpSecret == null)
-                            throw new Exception("SMTP secret (aws-secret or env-secret) was NOT specified.");
+                            throw new Exception("SMTP secret (aws-secret or env-secret) was NOT specified");
 
-                         var smtpm = new SmtpMail(smtpSecret);
+                        var from = nArgs.GetValueOrDefault("from", @default: null) ?? smtpSecret.login;
+
+                        if(!from.IsValidEmailAddress())
+                            throw new Exception($"From property ({from ?? "null"}) is not a valid email addess");
+
+                        var smtpm = new SmtpMail(smtpSecret);
 
                         if (!body.IsNullOrEmpty())
                         {

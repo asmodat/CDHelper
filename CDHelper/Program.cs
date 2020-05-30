@@ -11,8 +11,9 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.6.3";
+        public static string _version = "0.6.12";
         public static bool _debug = false;
+        public static bool _dryRun = false;
         public static bool _silent = false;
         public static string[] _hide_input_values = new string[0];
 
@@ -36,7 +37,8 @@ namespace CDHelper
         static async Task Main(string[] args)
         {
             var nArgs = CLIHelper.GetNamedArguments(args);
-            _silent = nArgs.GetValueOrDefault("silent").ToBoolOrDefault(false);
+            _silent = nArgs.GetFirstValueOrDefault("silent","s","silencio").ToBoolOrDefault(false);
+            _dryRun = nArgs.GetFirstValueOrDefault("dry","dry-run","dryrun").ToBoolOrDefault(false);
 
             WriteLine($"[{TickTime.Now.ToLongDateTimeString()}] *** Started CDHelper v{_version} by Asmodat ***");
 
@@ -202,7 +204,9 @@ namespace CDHelper
                     ("bitbucket", "Accepts params: pull-approve, pull-unapprove, pull-comment"),
                     ("[flags]", "Allowed Syntax: key=value, --key=value, -key='v1 v2 v3', -k, --key"),
                     ("--execution-mode=silent-errors", "[All commands] Don't throw errors, only displays exception message."),
-                    ("--execution-mode=debug", "[All commands] Throw instantly without reporting a failure."));
+                    ("--execution-mode=debug", "[All commands] Throw instantly without reporting a failure."),
+                    ("--silent=<bool>", "[All commands] quiets console output"),
+                    ("--dry-run=<bool>", "[All commands] comand testing"));
                     break;
                 default:
                     {

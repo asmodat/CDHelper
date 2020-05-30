@@ -24,68 +24,43 @@ namespace CDHelper
                         var old = nArgs["old"].RemoveNonDigits(exceptions: new char[] { '.' });
                         var @new = nArgs["new"].RemoveNonDigits(exceptions: new char[] { '.' });
 
-                        var oldSplits = old.Split('.');
-                        var newSplits = old.Split('.');
-                        var oldValues = new List<int>();
-                        var newValues = new List<int>();
-
-                        foreach(var o in oldSplits)
+                        int[] Split(string s)
                         {
-                            var i = o.ToIntOrDefault(-1);
-                            if (i <= 0)
-                                continue;
-                            oldValues.Add(i);
+                            var values = new List<int>();
+                            var splits = s.Split('.');
+                            bool firstDigitFound = false;
+                            foreach (var split in splits)
+                            {
+                                var i = split.ToIntOrDefault(-1);
+                                if (firstDigitFound && i <= 0)
+                                    continue;
+
+                                if (!firstDigitFound && i > 0)
+                                    firstDigitFound = true;
+
+                                values.Add(i);
+                            }
+                            return values.ToArray();
                         }
 
-                        foreach (var n in newSplits)
-                        {
-                            var i = n.ToIntOrDefault(-1);
-                            if (i <= 0)
-                                continue;
-                            newValues.Add(i);
-                        }
+                        var ovar = Split(old);
+                        var nvar = Split(@new);
 
-                        WriteLine($"INFO: Comparing 'v{oldValues.StringJoin(".")}' and 'v{newValues.StringJoin(".")}' ...");
+                        WriteLine($"INFO: Comparing 'v{ovar.StringJoin(".")}' and 'v{nvar.StringJoin(".")}' ...");
 
-                        if (oldValues.Count <= 0 && newValues.Count <= 0)
-                            throw new Exception($"Both '{old}' and '{@new}' are not versions.");
+                        if (ovar.Length <= 0 && ovar.Length <= 0)
+                            throw new Exception($"Both '{old}' and '{@new}' are NOT valid versions");
 
-                        if(oldValues.Count > 0 && newValues.Count <= 0)
-                        {
-                            Console.WriteLine("1");
-                            return;
-                        }
-
-                        if (newValues.Count > 0 && oldValues.Count <= 0)
-                        {
-                            Console.WriteLine("-1");
-                            return;
-                        }
-
-                        var ovar = oldValues.ToArray();
-                        var nvar = newValues.ToArray();
                         for (int i = 0; i < Math.Max(ovar.Length, nvar.Length); i++)
                         {
-                            int o = 0;
-                            int n = 0;
-
-                            if (ovar.Length > i)
-                                o = ovar[i];
-                            if (nvar.Length > i)
-                                n = nvar[i];
+                            var o = ovar.Length > i ? ovar[i] : 0;
+                            var n = nvar.Length > i ? nvar[i] : 0;
 
                             if (o == n)
                                 continue;
-                            if (o > n)
-                            {
-                                Console.WriteLine("1");
-                                return;
-                            } 
-                            else
-                            {
-                                Console.WriteLine("-1");
-                                return;
-                            }
+       
+                            Console.WriteLine(o > n ? "1" : "-1");
+                            return;
                         }
 
                         Console.WriteLine("0");
@@ -96,6 +71,7 @@ namespace CDHelper
                         var insert = nArgs["insert"];
                         var appendIfFoundNot = nArgs.GetValueOrDefault("append-if-found-not").ToBoolOrDefault(false);
                         var prependIfFoundNot = nArgs.GetValueOrDefault("prepend-if-found-not").ToBoolOrDefault(false);
+                        var dryRun = nArgs.GetValueOrDefault("dry-run").ToBoolOrDefault(false);
 
                         var prefix = nArgs.GetValueOrDefault("prefix", "");
                         var suffix = nArgs.GetValueOrDefault("suffix", "");
@@ -201,13 +177,13 @@ namespace CDHelper
                                     if (match)
                                     {
                                         match = match && !andPrefix.IsNullOrEmpty() ? line.StartsWith(andPrefix) : match;
-                                        match = match &&!andSuffix.IsNullOrEmpty() ? line.EndsWith(andSuffix) : match;
-                                        match = match &&!andRegex.IsNullOrEmpty() ? rxAnd.Match(line).Success : match;
-                                        match = match &&!andContains.IsNullOrEmpty() ? line.Contains(andContains) : match;
+                                        match = match && !andSuffix.IsNullOrEmpty() ? line.EndsWith(andSuffix) : match;
+                                        match = match && !andRegex.IsNullOrEmpty() ? rxAnd.Match(line).Success : match;
+                                        match = match && !andContains.IsNullOrEmpty() ? line.Contains(andContains) : match;
 
-                                        match = match &&!andPrefixNot.IsNullOrEmpty() ? !line.StartsWith(andPrefixNot) : match;
-                                        match = match &&!andSuffixNot.IsNullOrEmpty() ? !line.EndsWith(andSuffixNot) : match;
-                                        match = match &&!andRegexNot.IsNullOrEmpty() ? !rxAndNot.Match(line).Success : match;
+                                        match = match && !andPrefixNot.IsNullOrEmpty() ? !line.StartsWith(andPrefixNot) : match;
+                                        match = match && !andSuffixNot.IsNullOrEmpty() ? !line.EndsWith(andSuffixNot) : match;
+                                        match = match && !andRegexNot.IsNullOrEmpty() ? !rxAndNot.Match(line).Success : match;
                                         match = match && !andContainsNot.IsNullOrEmpty() ? !line.Contains(andContainsNot) : match;
                                     }
 
@@ -223,29 +199,30 @@ namespace CDHelper
                                 s.Close();
                             }
 
-                            appendIfFoundNot = cntr < 0 && appendIfFoundNot;
-                            prependIfFoundNot = cntr < 0 && prependIfFoundNot;
+                            appendIfFoundNot = cntr <= 0 && appendIfFoundNot;
+                            prependIfFoundNot = cntr <= 0 && prependIfFoundNot;
 
                             if (cntr > 0 || appendIfFoundNot || prependIfFoundNot)
                             {
                                 WriteLine($"Writing changes to '{file.FullName}' ...");
-                                using (var s = new StreamWriter(file.FullName, false))
-                                {
-                                    if(appendIfFoundNot)
-                                        s.WriteLine(insert);
-                                    foreach (var line in lines)
-                                        s.WriteLine(line);
-                                    if (prependIfFoundNot)
-                                        s.WriteLine(insert);
-                                    s.Close();
-                                }
+                                if (!_dryRun) // used for command testing
+                                    using (var s = new StreamWriter(file.FullName, false))
+                                    {
+                                        if (prependIfFoundNot)
+                                            s.WriteLine(insert);
+                                        foreach (var line in lines)
+                                            s.WriteLine(line);
+                                        if (appendIfFoundNot)
+                                            s.WriteLine(insert);
+                                        s.Close();
+                                    }
 
                                 Interlocked.Increment(ref count);
                             }
                         });
 
-                        if(count > 0)
-                           WriteLine($"SUCCESS: Replaced or Added text in {count} file/s. ");
+                        if (count > 0)
+                            WriteLine($"SUCCESS: Replaced or Added text in {count} file/s. ");
                         else
                             WriteLine($"WAFNING: No lines were matched in any of the files specified by path {path}");
                     }
