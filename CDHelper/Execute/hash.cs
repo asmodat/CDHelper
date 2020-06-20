@@ -22,25 +22,25 @@ namespace CDHelper
 
                 if (verify.ContainsAny(".", "/", "\\", "json") && File.Exists(verify))
                 {
-                    Console.WriteLine("Determined that verify argument is a file, extracting hash whitelist string array...");
+                    WriteLine("Determined that verify argument is a file, extracting hash whitelist string array...");
                     var fi = verify.ToFileInfo();
                     var arr = fi.ReadAllText()?.JsonDeserialize<string[]>();
-                    Console.WriteLine($"Success, found '{arr?.Length ?? 0}' hashes within '{fi.FullName}' file.");
+                    WriteLine($"Success, found '{arr?.Length ?? 0}' hashes within '{fi.FullName}' file.");
                     verifiers.AddRange(arr);
                 }
                 else
                     verifiers.Add(verify);
 
                 if (verifiers.Any(x => x != "*" && !x.IsNullOrEmpty() && hash.HexEquals(x)))
-                    Console.WriteLine($"{hash_type} Hash Verification Succeeded");
+                    WriteLine($"{hash_type} Hash Verification Succeeded");
                 else
                 {
-                    Console.WriteLine($"{hash_type} Hash Verification Failed");
+                    WriteLine($"{hash_type} Hash Verification Failed");
 
                     var err_message = $"{hash_type} Hash Verification failed, expected one of: '{verifiers?.JsonSerialize()}', but was: '{hash}'.";
 
                     if (verifiers.Any(x => x == "*"))
-                        Console.WriteLine($"WARNING!!! Hash wildcard was present, following error will not be thrown: {err_message}");
+                        WriteLine($"WARNING!!! Hash wildcard was present, following error will not be thrown: {err_message}");
                     else
                         throw new Exception(err_message);
                 }
@@ -60,13 +60,13 @@ namespace CDHelper
                             var di = path.ToDirectoryInfo();
                             var recursive = nArgs.Keys.Any(k => k.EquailsAny(StringComparison.InvariantCultureIgnoreCase, "r", "recursive"));
 
-                            Console.WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}");
+                            WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}");
                             hash = HashHelper.SHA256(di, excludeRootName: excludeRootName, recursive: recursive, encoding: Encoding.UTF8).Result.ToHexString();
                         }
                         else if(File.Exists(path))
                         {
                             var fi = path.ToFileInfo();
-                            Console.WriteLine($"File verificarion started, Path: {fi.FullName}, Exclude Name: {excludeRootName}");
+                            WriteLine($"File verificarion started, Path: {fi.FullName}, Exclude Name: {excludeRootName}");
                             if (excludeRootName)
                                 hash = HashHelper.SHA256(fi).ToHexString();
                             else
@@ -80,7 +80,7 @@ namespace CDHelper
                         if (verify.Value != null)
                             Verify(verify.Value, hash, "SHA256");
                         else
-                            Console.WriteLine(hash);
+                            Console.Write(hash);
                     }
                      break;
                 case "md5":
@@ -95,13 +95,13 @@ namespace CDHelper
                             var di = path.ToDirectoryInfo();
                             var recursive = nArgs.Keys.Any(k => k.EquailsAny(StringComparison.InvariantCultureIgnoreCase, "r", "recursive"));
 
-                            Console.WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}");
+                            WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}");
                             hash = HashHelper.MD5(di, excludeRootName: excludeRootName, recursive: recursive, encoding: Encoding.UTF8).Result.ToHexString();
                         }
                         else if (File.Exists(path))
                         {
                             var fi = path.ToFileInfo();
-                            Console.WriteLine($"File verificarion started, Path: {fi.FullName}, Exclude Name: {excludeRootName}");
+                            WriteLine($"File verificarion started, Path: {fi.FullName}, Exclude Name: {excludeRootName}");
                             if (excludeRootName)
                                 hash = HashHelper.MD5(fi).ToHexString();
                             else
@@ -115,7 +115,7 @@ namespace CDHelper
                         if (verify.Value != null)
                             Verify(verify.Value, hash, "MD5");
                         else
-                            Console.WriteLine(hash);
+                            Console.Write(hash);
                     }
                     break;
                 case "help":
