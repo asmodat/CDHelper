@@ -4,6 +4,7 @@ using AsmodatStandard.Cryptography;
 using AsmodatStandard.Extensions;
 using AsmodatStandard.IO;
 using AsmodatStandard.Extensions.IO;
+using AsmodatStandard.Extensions.Collections;
 using System.Text;
 using System.IO;
 using System.Collections.Generic;
@@ -59,9 +60,10 @@ namespace CDHelper
                         {
                             var di = path.ToDirectoryInfo();
                             var recursive = nArgs.Keys.Any(k => k.EquailsAny(StringComparison.InvariantCultureIgnoreCase, "r", "recursive"));
+                            var ignore = nArgs.GetFirstValueOrDefault("i", "ignore")?.Split(",") ?? new string[] { };
 
-                            WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}");
-                            hash = HashHelper.SHA256(di, excludeRootName: excludeRootName, recursive: recursive, encoding: Encoding.UTF8).Result.ToHexString();
+                            WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}, Ignore {ignore.JsonSerialize()}");
+                            hash = HashHelper.SHA256(di, excludeRootName: excludeRootName, recursive: recursive, encoding: Encoding.UTF8, ignore: ignore).Result.ToHexString();
                         }
                         else if(File.Exists(path))
                         {
@@ -94,9 +96,10 @@ namespace CDHelper
                         {
                             var di = path.ToDirectoryInfo();
                             var recursive = nArgs.Keys.Any(k => k.EquailsAny(StringComparison.InvariantCultureIgnoreCase, "r", "recursive"));
+                            var ignore = nArgs.GetFirstValueOrDefault("i", "ignore")?.Split(",") ?? new string[] { };
 
-                            WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}");
-                            hash = HashHelper.MD5(di, excludeRootName: excludeRootName, recursive: recursive, encoding: Encoding.UTF8).Result.ToHexString();
+                            WriteLine($"Directory verificarion started, Path: {di.FullName}, Exclude Root Name: {excludeRootName}, Recursive: {recursive}, Ignore {ignore.JsonSerialize()}");
+                            hash = HashHelper.MD5(di, excludeRootName: excludeRootName, recursive: recursive, encoding: Encoding.UTF8, ignore: ignore).Result.ToHexString();
                         }
                         else if (File.Exists(path))
                         {
@@ -124,13 +127,13 @@ namespace CDHelper
                 case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "Hash Helper",
-                    ("SHA256", "Accepts params: [as first param] [p]ath='<dir/file>', [v]erify='0x<hex string>', Accepted Flags: [r]ecursive, e[x]clude-root-name"),
-                    ("MD5", "Accepts params: [as first param] [p]ath='<dir/file>', [v]erify='0x<hex string>', Accepted Flags: [r]ecursive, e[x]clude-root-name"));
+                    ("SHA256", "Accepts params: [as first param] [p]ath='<dir/file>', [v]erify='0x<hex string>', Accepted Flags: [r]ecursive, e[x]clude-root-name, [i]gnore"),
+                    ("MD5", "Accepts params: [as first param] [p]ath='<dir/file>', [v]erify='0x<hex string>', Accepted Flags: [r]ecursive, e[x]clude-root-name, [i]gnore"));
                     break;
                 default:
                     {
                         Console.WriteLine($"Try '{args[0]} help' to find out list of available commands.");
-                        throw new Exception($"Unknown ECS command: '{args[0]} {args[1]}'");
+                        throw new Exception($"Unknown HASH command: '{args[0]} {args[1]}'");
                     }
             }
         }
