@@ -11,7 +11,7 @@ namespace CDHelper
 {
     public partial class Program
     {
-        public static string _version = "0.6.15";
+        public static string _version = "0.6.50";
         public static bool _debug = false;
         public static bool _dryRun = false;
         public static bool _silent = false;

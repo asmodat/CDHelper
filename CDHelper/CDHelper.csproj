@@ -2,21 +2,27 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>7.1</LangVersion>
-    <Version>0.6.14</Version>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Version>0.6.50</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Asmodat Bitbucket\Asmodat Bitbucket\Asmodat Bitbucket.csproj" />
-    <ProjectReference Include="..\..\Asmodat-Standard\Asmodat Standard\Asmodat Standard.csproj" />
-    <ProjectReference Include="..\..\AWSWrapper\AWSWrapper.csproj" />
-    <ProjectReference Include="..\..\GITWrapper\GITWrapper.csproj" />
+    <PackageReference Include="Asmodat.AWSWrapper" Version="1.0.5" />
+    <PackageReference Include="Asmodat.Bitbucket" Version="1.0.5" />
+    <PackageReference Include="Asmodat.GITWrapper" Version="1.0.5" />
+    <PackageReference Include="Asmodat.Standard" Version="1.0.5" />
   </ItemGroup>
 
 </Project>
