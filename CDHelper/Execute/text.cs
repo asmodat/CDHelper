@@ -78,6 +78,11 @@ namespace CDHelper
                         var regex = nArgs.GetValueOrDefault("regex", "");
                         var contains = nArgs.GetValueOrDefault("contains", "");
 
+                        // mach only after given regex sequence is found 
+                        var after = nArgs.GetValueOrDefault("after-regex", "");
+                        // mach only before given regex sequence is found 
+                        var before = nArgs.GetValueOrDefault("before-regex", "");
+
                         var prefixNot = nArgs.GetValueOrDefault("prefix-not", "");
                         var suffixNot = nArgs.GetValueOrDefault("suffix-not", "");
                         var regexNot = nArgs.GetValueOrDefault("regex-not", "");
@@ -103,6 +108,14 @@ namespace CDHelper
                         var rxNot = regexNot.IsNullOrEmpty() ? null : new Regex(regexNot);
                         var rxAnd = andRegex.IsNullOrEmpty() ? null : new Regex(andRegex);
                         var rxAndNot = andRegexNot.IsNullOrEmpty() ? null : new Regex(andRegexNot);
+
+                        var rxAfter = after.IsNullOrEmpty() ? null : new Regex(after);
+                        var rxBefore = before.IsNullOrEmpty() ? null : new Regex(before);
+
+                        if (!after.IsNullOrEmpty())
+                            WriteLine($"Matching AFTER regex: '{after}'");
+                        if (!before.IsNullOrEmpty())
+                            WriteLine($"Matching BEFORE regex: '{before}'");
 
                         if (!regex.IsNullOrEmpty())
                             WriteLine($"Matching OR regex: '{regex}'");
@@ -161,9 +174,29 @@ namespace CDHelper
                             {
                                 string line;
                                 bool match;
+                                bool afterMatch = false;
+                                bool beforeMatch = false;
                                 while ((line = s.ReadLine()) != null)
                                 {
                                     ++nr;
+                                    if (!afterMatch && !after.IsNullOrEmpty())
+                                    {
+                                        if (rxAfter.Match(line).Success)
+                                            afterMatch = true; // after match found
+
+                                        lines.Add(line);
+                                        continue;
+                                    }
+
+                                    if (!beforeMatch && !before.IsNullOrEmpty() && rxBefore.Match(line).Success)
+                                            beforeMatch = true; // before match found
+
+                                    if (beforeMatch)
+                                    {   // do not match, nothing left to process as before regex was hit
+                                        lines.Add(line);
+                                        continue;
+                                    }
+
                                     match = !prefix.IsNullOrEmpty() && line.StartsWith(prefix);
                                     match = match || (!suffix.IsNullOrEmpty() && line.EndsWith(suffix));
                                     match = match || (!regex.IsNullOrEmpty() && rx.Match(line).Success);
@@ -282,7 +315,7 @@ namespace CDHelper
                 case "-h":
                 case "h":
                     HelpPrinter($"{args[0]}", "String Manipulation",
-                    ("lineswap", "Accepts: insert, path, (and-)prefix(-not), (and-)suffix(-not), (and-)regex(-not), (and-)contains(-not), append-if-found-not (optiona: False), prepend-if-found-not (optional: False)"),
+                    ("lineswap", "Accepts: insert, path, (and-)prefix(-not), (and-)suffix(-not), (and-)regex(-not), (after-/before-)regex, (and-)contains(-not), (append-/prepend-)if-found-not (optiona: False)"),
                     ("replace", "Accepts: old, new, input"),
                     ("dos2unix", "Accepts: input"),
                     ("vereq", "Accepts: old, new | Returns: 0 if equal, -1 if old is smaller, 1 if old is greater"));
